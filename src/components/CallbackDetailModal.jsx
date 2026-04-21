@@ -84,6 +84,20 @@ export default function CallbackDetailModal({ callback, onClose }) {
                 LOAN INPUTS
               </h3>
               <div className="space-y-2">
+                {loanInputs.customerType && (
+                  <div>
+                    <p className="text-xs text-ncb-text">Customer Type</p>
+                    <p className="text-sm font-medium text-ncb-heading capitalize">
+                      {loanInputs.customerType}
+                    </p>
+                  </div>
+                )}
+                {loanInputs.idNumber && (
+                  <div>
+                    <p className="text-xs text-ncb-text">ID Number</p>
+                    <p className="text-sm font-medium text-ncb-heading font-mono">{loanInputs.idNumber}</p>
+                  </div>
+                )}
                 {loanInputs.productType && (
                   <div>
                     <p className="text-xs text-ncb-text">Product Type</p>
@@ -175,12 +189,6 @@ export default function CallbackDetailModal({ callback, onClose }) {
                         </p>
                       </div>
                     )}
-                  </div>
-                )}
-                {loanInputs.idNumber && (
-                  <div>
-                    <p className="text-xs text-ncb-text">ID Number</p>
-                    <p className="text-sm font-medium text-ncb-heading font-mono">{loanInputs.idNumber}</p>
                   </div>
                 )}
                 {loanInputs.loanTenorYears && (

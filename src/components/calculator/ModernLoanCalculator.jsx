@@ -20,6 +20,7 @@ function ModernLoanCalculator({ selectedProduct, onChangeProduct, onBackHome }) 
     natureOfBusiness: '',
     businessLocation: '',
     idNumber: '',
+    customerType: '',
   });
   
   const [result, setResult] = useState(null);
@@ -29,6 +30,23 @@ function ModernLoanCalculator({ selectedProduct, onChangeProduct, onBackHome }) 
   const [loanResultId, setLoanResultId] = useState(null);
   const [error, setError] = useState(null);
   const [successNotification, setSuccessNotification] = useState(null);
+
+  // Load customer info from sessionStorage (from Welcome page)
+  useEffect(() => {
+    const customerInfo = sessionStorage.getItem('customerInfo');
+    if (customerInfo) {
+      try {
+        const data = JSON.parse(customerInfo);
+        setFormData(prev => ({
+          ...prev,
+          idNumber: data.idNumber || '',
+          customerType: data.customerType || '',
+        }));
+      } catch (e) {
+        console.error('Failed to parse customer info from sessionStorage:', e);
+      }
+    }
+  }, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -64,11 +82,6 @@ function ModernLoanCalculator({ selectedProduct, onChangeProduct, onBackHome }) 
       return;
     }
 
-    if (!formData.idNumber.trim()) {
-      setError('Please enter your ID/Passport number');
-      return;
-    }
-
     if (formData.incomeSource === 'employed' && !formData.employerName.trim()) {
       setError('Please enter your employer name');
       return;
@@ -100,6 +113,7 @@ function ModernLoanCalculator({ selectedProduct, onChangeProduct, onBackHome }) 
         natureOfBusiness: formData.natureOfBusiness,
         businessLocation: formData.businessLocation,
         idNumber: formData.idNumber,
+        customerType: formData.customerType,
       };
       
       const response = await loanService.calculateLoan(payload);
@@ -229,19 +243,6 @@ function ModernLoanCalculator({ selectedProduct, onChangeProduct, onBackHome }) 
             )}
 
             <div className="space-y-3.5">
-              {/* ID Number */}
-              <div>
-                <label className="block text-xs font-semibold text-ncb-heading mb-0.5">ID/Passport Number</label>
-                <input
-                  type="text"
-                  name="idNumber"
-                  value={formData.idNumber}
-                  onChange={handleInputChange}
-                  className="w-full px-2.5 py-1 text-xs border border-ncb-divider rounded-lg focus:outline-none focus:border-ncb-blue"
-                  placeholder="Enter your ID number"
-                />
-              </div>
-
               {/* Income fields based on source */}
               {formData.incomeSource === 'employed' ? (
                 <>

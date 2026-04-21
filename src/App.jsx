@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import HomePage from './pages/HomePage';
+import WelcomePage from './pages/WelcomePage';
 import ProductPage from './pages/ProductPage';
 import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
@@ -39,6 +40,10 @@ function App() {
       <Route 
         path="/" 
         element={<HomePage onNavigateToCalculator={handleNavigateToProducts} />} 
+      />
+      <Route 
+        path="/welcome" 
+        element={<WelcomePage onNavigateToProducts={handleNavigateToProducts} />} 
       />
       <Route 
         path="/products" 
