@@ -1,0 +1,112 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-ncb-divider;
+  }
+  
+  body {
+    @apply bg-ncb-lightbg text-ncb-text font-sans antialiased;
+    margin: 0;
+    min-height: 100vh;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-ncb-divider rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-ncb-blue rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-ncb-blue-dark;
+  }
+}
+
+@layer components {
+  .container-custom {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  .heading-1 {
+    @apply text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-ncb-heading;
+  }
+
+  .heading-2 {
+    @apply text-3xl sm:text-4xl font-bold tracking-tight text-ncb-heading;
+  }
+
+  .heading-3 {
+    @apply text-2xl sm:text-3xl font-semibold text-ncb-heading;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center px-6 py-3 text-sm font-semibold text-white bg-ncb-blue rounded-lg hover:bg-ncb-blue-dark transition-all duration-200 shadow-md hover:shadow-lg hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center px-6 py-3 text-sm font-semibold text-ncb-blue bg-ncb-blue-50 rounded-lg hover:bg-ncb-blue-100 transition-all duration-200 border border-ncb-blue-200;
+  }
+
+  .btn-outline {
+    @apply inline-flex items-center justify-center px-6 py-3 text-sm font-semibold text-ncb-heading bg-white rounded-lg hover:bg-gray-50 transition-all duration-200 border border-ncb-divider;
+  }
+
+  .card {
+    @apply bg-white rounded-2xl border border-ncb-divider shadow-card hover:shadow-card-hover transition-all duration-300;
+  }
+}
+
+@layer utilities {
+  .animate-in {
+    animation: animateIn 0.3s ease-out;
+  }
+
+  @keyframes animateIn {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  .fade-in {
+    animation: fadeIn 0.3s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  .slide-up {
+    animation: slideUp 0.4s ease-out;
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
