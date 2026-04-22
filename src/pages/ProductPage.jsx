@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Home } from 'lucide-react';
 import ModernLoanCalculator from '../components/calculator/ModernLoanCalculator';
@@ -25,6 +25,14 @@ const MORTGAGE_PRODUCTS = [
 export default function ProductPage({ onNavigateToCalculator, onBackHome }) {
   const navigate = useNavigate();
   const [selectedProduct, setSelectedProduct] = useState(null);
+
+  // Guard: Redirect to welcome if customer info is not in sessionStorage
+  useEffect(() => {
+    const customerInfo = sessionStorage.getItem('customerInfo');
+    if (!customerInfo) {
+      navigate('/welcome');
+    }
+  }, [navigate]);
 
   const handleProductSelect = (product) => {
     setSelectedProduct(product);

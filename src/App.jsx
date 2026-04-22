@@ -39,6 +39,10 @@ function App() {
     <Routes>
       <Route 
         path="/" 
+        element={<WelcomePage onNavigateToProducts={handleNavigateToProducts} />} 
+      />
+      <Route 
+        path="/home" 
         element={<HomePage onNavigateToCalculator={handleNavigateToProducts} />} 
       />
       <Route 

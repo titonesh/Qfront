@@ -1,6 +1,6 @@
 // This file can be used for more complex routing if needed
 export const ROUTES = {
-  HOME: '/',
+  HOME: '/home',
   WELCOME: '/welcome',
   PRODUCTS: '/products',
   CALCULATOR: (productId) => `/calculator/${productId}`,

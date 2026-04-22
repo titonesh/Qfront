@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Calculator, Building, Briefcase } from 'lucide-react';
 import loanService from '../../services/loanService';
 import callbackService from '../../services/callbackService';
@@ -8,6 +9,7 @@ import CallbackModal from './CallbackModal';
 const KENYAN_TOWNS = ['Nairobi', 'Mombasa', 'Kisumu', 'Nakuru', 'Eldoret'];
 
 function ModernLoanCalculator({ selectedProduct, onChangeProduct, onBackHome }) {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     incomeSource: 'employed',
     monthlySalaryIncome: '',
@@ -31,22 +33,27 @@ function ModernLoanCalculator({ selectedProduct, onChangeProduct, onBackHome }) 
   const [error, setError] = useState(null);
   const [successNotification, setSuccessNotification] = useState(null);
 
-  // Load customer info from sessionStorage (from Welcome page)
+  // Load customer info from sessionStorage (from Welcome page) and guard
   useEffect(() => {
     const customerInfo = sessionStorage.getItem('customerInfo');
-    if (customerInfo) {
-      try {
-        const data = JSON.parse(customerInfo);
-        setFormData(prev => ({
-          ...prev,
-          idNumber: data.idNumber || '',
-          customerType: data.customerType || '',
-        }));
-      } catch (e) {
-        console.error('Failed to parse customer info from sessionStorage:', e);
-      }
+    if (!customerInfo) {
+      // Redirect to welcome if customer info is missing
+      navigate('/welcome');
+      return;
     }
-  }, []);
+    
+    try {
+      const data = JSON.parse(customerInfo);
+      setFormData(prev => ({
+        ...prev,
+        idNumber: data.idNumber || '',
+        customerType: data.customerType || '',
+      }));
+    } catch (e) {
+      console.error('Failed to parse customer info from sessionStorage:', e);
+      navigate('/welcome');
+    }
+  }, [navigate]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -148,7 +155,10 @@ function ModernLoanCalculator({ selectedProduct, onChangeProduct, onBackHome }) 
       });
       setShowCallbackModal(false);
       setSuccessNotification('Callback request submitted successfully! Our team will contact you shortly.');
-      setTimeout(() => setSuccessNotification(null), 15000);
+      setTimeout(() => {
+        setSuccessNotification(null);
+        navigate('/welcome');
+      }, 2000);
     } catch (error) {
       console.error('Callback request failed:', error);
       setSuccessNotification('Callback request failed. Please try again.');
@@ -205,8 +215,14 @@ function ModernLoanCalculator({ selectedProduct, onChangeProduct, onBackHome }) 
       <header className="bg-white border-b border-ncb-divider sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-14">
-            <button onClick={onChangeProduct} className="flex items-center gap-2 text-ncb-text hover:text-ncb-blue text-sm">
-              <ArrowLeft size={18} /> Back to Products
+            <button 
+              onClick={() => {
+                sessionStorage.removeItem('customerInfo');
+                navigate('/welcome');
+              }} 
+              className="flex items-center gap-2 text-ncb-text hover:text-ncb-blue text-sm"
+            >
+              <ArrowLeft size={18} /> Start Over
             </button>
             <div className="text-center">
               <h1 className="font-semibold text-ncb-heading text-lg">{selectedProduct.label}</h1>

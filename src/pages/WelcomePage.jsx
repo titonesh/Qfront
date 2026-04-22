@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Home } from 'lucide-react';
+import { ArrowRight, ArrowLeft } from 'lucide-react';
 
 export default function WelcomePage({ onNavigateToProducts }) {
   const navigate = useNavigate();
@@ -68,10 +68,21 @@ export default function WelcomePage({ onNavigateToProducts }) {
       <header className="bg-white border-b border-ncb-divider sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-2">
-              <Home size={18} className="text-ncb-blue" />
+            <button 
+              onClick={() => navigate('/home')}
+              className="flex items-center gap-2 text-ncb-text hover:text-ncb-blue text-sm transition-colors"
+            >
+              <ArrowLeft size={18} /> Back
+            </button>
+            <div className="flex items-center gap-3">
+              <img
+                src="/src/assets/images/logo.png"
+                alt="NCBA Mortgage Logo"
+                className="h-8 w-auto object-contain"
+              />
               <span className="font-semibold text-ncb-heading">NCBA Mortgage</span>
             </div>
+            <div className="w-16"></div>
           </div>
         </div>
       </header>
@@ -81,7 +92,7 @@ export default function WelcomePage({ onNavigateToProducts }) {
         <div className="max-w-2xl mx-auto">
           {/* Welcome Message */}
           <div className="mb-12 text-center">
-            <h1 className="text-4xl font-bold text-ncb-heading mb-4">
+            <h1 className="text-4xl font-bold text-ncb-blue mb-4 ">
               Welcome to NCBA Bank
             </h1>
             <p className="text-lg text-ncb-text">
@@ -93,7 +104,7 @@ export default function WelcomePage({ onNavigateToProducts }) {
           <div className="bg-white rounded-2xl border border-ncb-divider p-8 shadow-sm">
             {/* Customer Type Section */}
             <div className="mb-8">
-              <label className="block text-sm font-semibold text-ncb-heading mb-3">
+              <label className="block text-sm font-semibold text-ncb-blue mb-3">
                 Are you an existing or new customer? <span className="text-red-500">*</span>
               </label>
               <div className="relative">
@@ -116,7 +127,7 @@ export default function WelcomePage({ onNavigateToProducts }) {
 
             {/* ID Number Field */}
             <div className="mb-8">
-              <label className="block text-sm font-semibold text-ncb-heading mb-3">
+              <label className="block text-sm font-semibold text-ncb-blue mb-3">
                 Applicant ID No. <span className="text-red-500">*</span>
               </label>
               <input
@@ -143,7 +154,7 @@ export default function WelcomePage({ onNavigateToProducts }) {
 
             {/* Applicant Name Section */}
             <div className="mb-8">
-              <label className="block text-sm font-semibold text-ncb-heading mb-3">
+              <label className="block text-sm font-semibold text-ncb-blue mb-3">
                 Applicant Name <span className="text-red-500">*</span>
               </label>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -184,7 +195,7 @@ export default function WelcomePage({ onNavigateToProducts }) {
 
             {/* Sir Name Field */}
             <div className="mb-10">
-              <label className="block text-sm font-semibold text-ncb-heading mb-3">
+              <label className="block text-sm font-semibold text-ncb-blue mb-3">
                 Sir Name <span className="text-red-500">*</span>
               </label>
               <input
