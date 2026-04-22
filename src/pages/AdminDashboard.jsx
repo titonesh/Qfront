@@ -284,7 +284,7 @@ export default function AdminDashboard() {
       return {
         avgLoanAmount: 0,
         avgTenor: 0,
-        businessVsSalaried: { business: 0, salaried: 0 },
+        businessVsSalaried: { employed: 0, business: 0 },
         topProductTypes: [],
         avgMonthlyIncome: 0,
         topBranches: [],
@@ -312,22 +312,26 @@ export default function AdminDashboard() {
     const avgLoanAmount = loanResults.length > 0 ? totalLoanAmount / loanResults.length : 0;
 
     // Average tenor
-    const totalTenor = loanInputs.reduce((sum, input) => sum + (Number(input.loanTenorYears) || 0), 0);
+    const totalTenor = loanInputs.reduce((sum, input) => sum + (Number(input.preferredLoanTenorYears) || 0), 0);
     const avgTenor = loanInputs.length > 0 ? (totalTenor / loanInputs.length).toFixed(1) : 0;
 
-    // Business vs Salaried
-    const salariedCount = loanInputs.filter(input => input.incomeSource === 'salaried').length;
+    // Business vs Employed - filter only entries with valid income source
+    const employedCount = loanInputs.filter(input => input.incomeSource === 'employed').length;
     const businessCount = loanInputs.filter(input => input.incomeSource === 'business').length;
+    const totalWithIncomeSource = employedCount + businessCount;
     const businessVsSalaried = {
-      business: loanInputs.length > 0 ? Math.round((businessCount / loanInputs.length) * 100) : 0,
-      salaried: loanInputs.length > 0 ? Math.round((salariedCount / loanInputs.length) * 100) : 0,
+      employed: totalWithIncomeSource > 0 ? Math.round((employedCount / totalWithIncomeSource) * 100) : 0,
+      business: totalWithIncomeSource > 0 ? Math.round((businessCount / totalWithIncomeSource) * 100) : 0,
     };
 
-    // Top product types
+    // Top product types - only count products that have a value
     const productCounts = {};
     loanInputs.forEach(input => {
-      const product = input.productType || 'Unknown';
-      productCounts[product] = (productCounts[product] || 0) + 1;
+      const product = input.productType;
+      // Only count if product type is defined and not empty
+      if (product && product.trim()) {
+        productCounts[product] = (productCounts[product] || 0) + 1;
+      }
     });
     const topProductTypes = Object.entries(productCounts)
       .sort((a, b) => b[1] - a[1])
@@ -335,7 +339,7 @@ export default function AdminDashboard() {
       .map(([type, count]) => ({
         type: type.replace(/([A-Z])/g, ' $1').trim(),
         count,
-        percentage: Math.round((count / loanInputs.length) * 100),
+        percentage: Math.round((count / Object.values(productCounts).reduce((sum, val) => sum + val, 0)) * 100),
       }));
 
     // Average monthly income
@@ -502,7 +506,7 @@ export default function AdminDashboard() {
             <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-4">
               <p className="text-xs font-semibold text-orange-600 mb-1">INCOME TYPE SPLIT</p>
               <div className="space-y-1">
-                <p className="text-sm"><span className="font-bold text-orange-900">{insights.businessVsSalaried.salaried}%</span> <span className="text-xs text-orange-600">Salaried</span></p>
+                <p className="text-sm"><span className="font-bold text-orange-900">{insights.businessVsSalaried.employed}%</span> <span className="text-xs text-orange-600">Employed</span></p>
                 <p className="text-sm"><span className="font-bold text-orange-900">{insights.businessVsSalaried.business}%</span> <span className="text-xs text-orange-600">Business</span></p>
               </div>
             </div>
