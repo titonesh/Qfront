@@ -425,7 +425,7 @@ export default function AdminDashboard() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <h1 className="text-xl font-bold text-ncb-heading">Admin Dashboard</h1>
-            <button onClick={handleLogout} className="flex items-center gap-2 text-ncb-text hover:text-red-600 transition-colors">
+            <button onClick={handleLogout} className="flex items-center gap-2 text-ncb-text hover:text-ncb-blue transition-colors">
               <LogOut size={18} /> Logout
             </button>
           </div>
@@ -435,11 +435,11 @@ export default function AdminDashboard() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-xl p-6 shadow-card">
+          <div className="bg-blue rounded-xl p-6 shadow-card">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-ncb-text text-sm">Total Callbacks</p>
-                <p className="text-3xl font-bold text-ncb-heading">{stats.total}</p>
+                <p className="text-3xl font-bold text-ncb-blue">{stats.total}</p>
               </div>
               <Phone size={32} className="text-ncb-blue" />
             </div>
@@ -448,27 +448,27 @@ export default function AdminDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-ncb-text text-sm">Pending</p>
-                <p className="text-3xl font-bold text-yellow-600">{stats.pending}</p>
+                <p className="text-3xl font-bold text-ncb-blue">{stats.pending}</p>
               </div>
-              <Clock size={32} className="text-yellow-500" />
+              <Clock size={32} className="text-ncb-blue" />
             </div>
           </div>
           <div className="bg-white rounded-xl p-6 shadow-card">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-ncb-text text-sm">Contacted</p>
-                <p className="text-3xl font-bold text-green-600">{stats.contacted}</p>
+                <p className="text-3xl font-bold text-ncb-blue">{stats.contacted}</p>
               </div>
-              <CheckCircle size={32} className="text-green-500" />
+              <CheckCircle size={32} className="text-ncb-blue" />
             </div>
           </div>
           <div className="bg-white rounded-xl p-6 shadow-card">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-ncb-text text-sm">Conversion Rate</p>
-                <p className="text-3xl font-bold text-blue-600">{stats.conversionRate}%</p>
+                <p className="text-3xl font-bold text-ncb-blue">{stats.conversionRate}%</p>
               </div>
-              <Users size={32} className="text-blue-500" />
+              <Users size={32} className="text-ncb-blue" />
             </div>
           </div>
         </div>
@@ -489,25 +489,25 @@ export default function AdminDashboard() {
             </div>
 
             {/* Average Tenor */}
-            <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4">
-              <p className="text-xs font-semibold text-green-600 mb-1">AVG LOAN TENOR</p>
+            <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4">
+              <p className="text-xs font-semibold text-blue-600 mb-1">AVG LOAN TENOR</p>
               <p className="text-2xl font-bold text-green-900">{insights.avgTenor} <span className="text-lg">years</span></p>
-              <p className="text-xs text-green-600 mt-2">Customer preference</p>
+              <p className="text-xs text-blue-600 mt-2">Customer preference</p>
             </div>
 
             {/* Average Monthly Income */}
-            <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4">
-              <p className="text-xs font-semibold text-purple-600 mb-1">AVG MONTHLY INCOME</p>
+            <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4">
+              <p className="text-xs font-semibold text-blue-600 mb-1">AVG MONTHLY INCOME</p>
               <p className="text-2xl font-bold text-purple-900">KES {(insights.avgMonthlyIncome / 1000).toFixed(0)}K</p>
-              <p className="text-xs text-purple-600 mt-2">From all sources</p>
+              <p className="text-xs text-blue-600 mt-2">From all sources</p>
             </div>
 
             {/* Income Type Ratio */}
-            <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-4">
-              <p className="text-xs font-semibold text-orange-600 mb-1">INCOME TYPE SPLIT</p>
+            <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4">
+              <p className="text-xs font-semibold text-blue-600 mb-1">INCOME TYPE SPLIT</p>
               <div className="space-y-1">
-                <p className="text-sm"><span className="font-bold text-orange-900">{insights.businessVsSalaried.employed}%</span> <span className="text-xs text-orange-600">Employed</span></p>
-                <p className="text-sm"><span className="font-bold text-orange-900">{insights.businessVsSalaried.business}%</span> <span className="text-xs text-orange-600">Business</span></p>
+                <p className="text-sm"><span className="font-bold text-orange-900">{insights.businessVsSalaried.employed}%</span> <span className="text-xs text-blue-600">Employed</span></p>
+                <p className="text-sm"><span className="font-bold text-blue-600">{insights.businessVsSalaried.business}%</span> <span className="text-xs text-blue-600">Business</span></p>
               </div>
             </div>
           </div>
