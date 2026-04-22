@@ -65,6 +65,7 @@ export default function AdminDashboard() {
         'Email': callback.email,
         'Message': callback.message || '-',
         'Referral Code': callback.referralNumber || '-',
+        'Preferred Branch': callback.preferredBranch || '-',
         'Status': callback.isProcessed ? 'Contacted' : 'Pending',
         'Date Contacted': callback.processedAt ? formatDate(callback.processedAt) : '-',
         // Loan Input Details

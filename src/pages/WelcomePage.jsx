@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, ArrowLeft } from 'lucide-react';
+import bgImage from '../assets/images/bgdncba.jpg';
 
 export default function WelcomePage({ onNavigateToProducts }) {
   const navigate = useNavigate();
@@ -63,7 +64,12 @@ export default function WelcomePage({ onNavigateToProducts }) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
+    <div 
+      className="min-h-screen bg-cover bg-center bg-no-repeat"
+      style={{
+        backgroundImage: `linear-gradient(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.85)), url(${bgImage})`,
+      }}
+    >
       {/* Header */}
       <header className="bg-white border-b border-ncb-divider sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
