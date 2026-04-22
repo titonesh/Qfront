@@ -105,6 +105,24 @@ export default function AdminDashboard() {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
+  // Helper function to safely format numeric values for Excel
+  const formatForExcel = (value, prefix = 'KES') => {
+    if (value === null || value === undefined || value === '') {
+      return '-';
+    }
+    const num = Number(value);
+    if (isNaN(num)) {
+      return '-';
+    }
+    if (prefix === 'KES') {
+      return `${prefix} ${num.toLocaleString()}`;
+    }
+    if (prefix === '%') {
+      return `${(num * 100).toFixed(2)}%`;
+    }
+    return num.toLocaleString();
+  };
+
   const handleExportExcel = () => {
     if (callbacks.length === 0) {
       alert('No data to export');
@@ -130,24 +148,24 @@ export default function AdminDashboard() {
         // Loan Input Details
         'Product Type': loanInputs.productType || '-',
         'Income Type': loanInputs.incomeSource || '-',
-        'Monthly Salary': loanInputs.monthlySalaryIncome ? `KES ${Number(loanInputs.monthlySalaryIncome).toLocaleString()}` : '-',
+        'Monthly Salary': formatForExcel(loanInputs.monthlySalaryIncome),
         'Employer Name': loanInputs.employerName || '-',
-        'Monthly Business Income': loanInputs.monthlyBusinessIncome ? `KES ${Number(loanInputs.monthlyBusinessIncome).toLocaleString()}` : '-',
+        'Monthly Business Income': formatForExcel(loanInputs.monthlyBusinessIncome),
         'Nature of Business': loanInputs.natureOfBusiness || '-',
         'Business Location': loanInputs.businessLocation || '-',
-        'Monthly Rental': loanInputs.monthlyRentalPayments ? `KES ${Number(loanInputs.monthlyRentalPayments).toLocaleString()}` : '-',
-        'Existing Loan Obligations': loanInputs.existingLoanObligations ? `KES ${Number(loanInputs.existingLoanObligations).toLocaleString()}` : '-',
-        'Credit Card Limit': loanInputs.creditCardLimit > 0 ? `KES ${Number(loanInputs.creditCardLimit).toLocaleString()}` : '-',
-        'Overdraft Limit': loanInputs.overdraftLimit > 0 ? `KES ${Number(loanInputs.overdraftLimit).toLocaleString()}` : '-',
+        'Monthly Rental': formatForExcel(loanInputs.monthlyRentalPayments),
+        'Existing Loan Obligations': formatForExcel(loanInputs.existingLoanObligations),
+        'Credit Card Limit': formatForExcel(loanInputs.creditCardLimit),
+        'Overdraft Limit': formatForExcel(loanInputs.overdraftLimit),
         'ID Number': loanInputs.idNumber || '-',
         'Preferred Loan Tenor': loanInputs.loanTenorYears ? `${loanInputs.loanTenorYears} years` : '-',
         // Loan Results
-        'Max Loan Amount': loanResult.maximumLoanAmount ? `KES ${Number(loanResult.maximumLoanAmount).toLocaleString()}` : '-',
-        'Adjusted Income': loanResult.adjustedIncome ? `KES ${Number(loanResult.adjustedIncome).toLocaleString()}` : '-',
-        'Monthly Repayment': loanResult.estimatedMonthlyRepayment ? `KES ${Number(loanResult.estimatedMonthlyRepayment).toLocaleString()}` : '-',
-        'Stress Test Repayment': loanResult.stressTestedRepayment ? `KES ${Number(loanResult.stressTestedRepayment).toLocaleString()}` : '-',
-        'Interest Rate': loanResult.appliedInterestRate ? `${(loanResult.appliedInterestRate * 100).toFixed(2)}%` : '-',
-        'Stress Rate': loanResult.appliedStressTestRate ? `${(loanResult.appliedStressTestRate * 100).toFixed(2)}%` : '-',
+        'Max Loan Amount': formatForExcel(loanResult.maximumLoanAmount),
+        'Adjusted Income': formatForExcel(loanResult.adjustedIncome),
+        'Monthly Repayment': formatForExcel(loanResult.estimatedMonthlyRepayment),
+        'Stress Test Repayment': formatForExcel(loanResult.stressTestedRepayment),
+        'Interest Rate': formatForExcel(loanResult.appliedInterestRate, '%'),
+        'Stress Rate': formatForExcel(loanResult.appliedStressTestRate, '%'),
         'Eligibility Status': loanResult.eligibilityMessage || '-',
       };
     });
@@ -258,6 +276,99 @@ export default function AdminDashboard() {
     conversionRate: totalItems > 0 ? Math.round((callbacks.filter(c => c.isProcessed).length / callbacks.length) * 100) : 0,
   };
 
+  // Calculate data insights
+  const calculateInsights = () => {
+    const allLoansWithInputs = callbacks.filter(c => c.loanInputsJson);
+    
+    if (allLoansWithInputs.length === 0) {
+      return {
+        avgLoanAmount: 0,
+        avgTenor: 0,
+        businessVsSalaried: { business: 0, salaried: 0 },
+        topProductTypes: [],
+        avgMonthlyIncome: 0,
+        topBranches: [],
+      };
+    }
+
+    const loanInputs = allLoansWithInputs.map(c => {
+      try {
+        return JSON.parse(c.loanInputsJson);
+      } catch {
+        return null;
+      }
+    }).filter(Boolean);
+
+    const loanResults = allLoansWithInputs.map(c => {
+      try {
+        return c.loanResultJson ? JSON.parse(c.loanResultJson) : null;
+      } catch {
+        return null;
+      }
+    }).filter(Boolean);
+
+    // Average loan amount
+    const totalLoanAmount = loanResults.reduce((sum, result) => sum + (Number(result.maximumLoanAmount) || 0), 0);
+    const avgLoanAmount = loanResults.length > 0 ? totalLoanAmount / loanResults.length : 0;
+
+    // Average tenor
+    const totalTenor = loanInputs.reduce((sum, input) => sum + (Number(input.loanTenorYears) || 0), 0);
+    const avgTenor = loanInputs.length > 0 ? (totalTenor / loanInputs.length).toFixed(1) : 0;
+
+    // Business vs Salaried
+    const salariedCount = loanInputs.filter(input => input.incomeSource === 'salaried').length;
+    const businessCount = loanInputs.filter(input => input.incomeSource === 'business').length;
+    const businessVsSalaried = {
+      business: loanInputs.length > 0 ? Math.round((businessCount / loanInputs.length) * 100) : 0,
+      salaried: loanInputs.length > 0 ? Math.round((salariedCount / loanInputs.length) * 100) : 0,
+    };
+
+    // Top product types
+    const productCounts = {};
+    loanInputs.forEach(input => {
+      const product = input.productType || 'Unknown';
+      productCounts[product] = (productCounts[product] || 0) + 1;
+    });
+    const topProductTypes = Object.entries(productCounts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3)
+      .map(([type, count]) => ({
+        type: type.replace(/([A-Z])/g, ' $1').trim(),
+        count,
+        percentage: Math.round((count / loanInputs.length) * 100),
+      }));
+
+    // Average monthly income
+    const totalIncome = loanInputs.reduce((sum, input) => {
+      const salary = Number(input.monthlySalaryIncome) || 0;
+      const business = Number(input.monthlyBusinessIncome) || 0;
+      return sum + salary + business;
+    }, 0);
+    const avgMonthlyIncome = loanInputs.length > 0 ? totalIncome / loanInputs.length : 0;
+
+    // Top branches
+    const branchCounts = {};
+    callbacks.forEach(c => {
+      if (c.preferredBranch) {
+        branchCounts[c.preferredBranch] = (branchCounts[c.preferredBranch] || 0) + 1;
+      }
+    });
+    const topBranches = Object.entries(branchCounts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([branch, count]) => ({ branch, count }));
+
+    return {
+      avgLoanAmount,
+      avgTenor,
+      businessVsSalaried,
+      topProductTypes,
+      avgMonthlyIncome,
+      topBranches,
+    };
+  };
+
+  const insights = calculateInsights();
   const totalPages = Math.ceil(totalItems / pageSize);
 
   if (loading) {
@@ -358,7 +469,91 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* Search & Filter Bar */}
+        {/* Data Insights Section */}
+        <div className="bg-white rounded-xl shadow-card mb-6 p-6">
+          <h2 className="text-lg font-bold text-ncb-heading mb-6 flex items-center gap-2">
+            <Users size={20} className="text-ncb-blue" />
+            Data Insights
+          </h2>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            {/* Average Loan Amount */}
+            <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4">
+              <p className="text-xs font-semibold text-blue-600 mb-1">AVG LOAN AMOUNT</p>
+              <p className="text-2xl font-bold text-blue-900">KES {(insights.avgLoanAmount / 1000000).toFixed(1)}M</p>
+              <p className="text-xs text-blue-600 mt-2">Based on {callbacks.length} applications</p>
+            </div>
+
+            {/* Average Tenor */}
+            <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4">
+              <p className="text-xs font-semibold text-green-600 mb-1">AVG LOAN TENOR</p>
+              <p className="text-2xl font-bold text-green-900">{insights.avgTenor} <span className="text-lg">years</span></p>
+              <p className="text-xs text-green-600 mt-2">Customer preference</p>
+            </div>
+
+            {/* Average Monthly Income */}
+            <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4">
+              <p className="text-xs font-semibold text-purple-600 mb-1">AVG MONTHLY INCOME</p>
+              <p className="text-2xl font-bold text-purple-900">KES {(insights.avgMonthlyIncome / 1000).toFixed(0)}K</p>
+              <p className="text-xs text-purple-600 mt-2">From all sources</p>
+            </div>
+
+            {/* Income Type Ratio */}
+            <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-4">
+              <p className="text-xs font-semibold text-orange-600 mb-1">INCOME TYPE SPLIT</p>
+              <div className="space-y-1">
+                <p className="text-sm"><span className="font-bold text-orange-900">{insights.businessVsSalaried.salaried}%</span> <span className="text-xs text-orange-600">Salaried</span></p>
+                <p className="text-sm"><span className="font-bold text-orange-900">{insights.businessVsSalaried.business}%</span> <span className="text-xs text-orange-600">Business</span></p>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Top Product Types */}
+            <div>
+              <h3 className="text-sm font-semibold text-ncb-heading mb-4">Top Product Types</h3>
+              <div className="space-y-3">
+                {insights.topProductTypes.length > 0 ? (
+                  insights.topProductTypes.map((product, idx) => (
+                    <div key={idx}>
+                      <div className="flex justify-between mb-1">
+                        <p className="text-sm text-ncb-text">{product.type}</p>
+                        <p className="text-sm font-semibold text-ncb-heading">{product.count} ({product.percentage}%)</p>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div
+                          className="bg-gradient-to-r from-ncb-blue to-blue-600 h-2 rounded-full"
+                          style={{ width: `${product.percentage}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-gray-400">No data available</p>
+                )}
+              </div>
+            </div>
+
+            {/* Top Branches */}
+            <div>
+              <h3 className="text-sm font-semibold text-ncb-heading mb-4">Top Branches</h3>
+              <div className="space-y-3">
+                {insights.topBranches.length > 0 ? (
+                  insights.topBranches.map((branch, idx) => (
+                    <div key={idx} className="flex justify-between items-center p-2 bg-gray-50 rounded-lg">
+                      <p className="text-sm text-ncb-heading">{branch.branch}</p>
+                      <span className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-ncb-blue text-white text-xs font-semibold">
+                        {branch.count}
+                      </span>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-gray-400">No preferred branches yet</p>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
         <div className="bg-white rounded-xl shadow-card mb-6 p-4">
           <div className="flex flex-col md:flex-row gap-4">
             {/* Search */}
