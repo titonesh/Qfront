@@ -46,8 +46,8 @@ export default function WelcomePage({ onNavigateToProducts }) {
       newErrors.lastName = 'Last name is required';
     }
 
-    if (!formData.sirName.trim()) {
-      newErrors.sirName = 'Sir name is required';
+    if (!formData.surName.trim()) {
+      newErrors.surName = 'Sir name is required';
     }
 
     setErrors(newErrors);
@@ -80,7 +80,7 @@ export default function WelcomePage({ onNavigateToProducts }) {
                 alt="NCBA Mortgage Logo"
                 className="h-8 w-auto object-contain"
               />
-              <span className="font-semibold text-ncb-heading">NCBA Mortgage</span>
+              <span className="font-semibold text-ncb-blue">NCBA Mortgage</span>
             </div>
             <div className="w-16"></div>
           </div>
@@ -180,7 +180,7 @@ export default function WelcomePage({ onNavigateToProducts }) {
                     name="lastName"
                     value={formData.lastName}
                     onChange={handleInputChange}
-                    placeholder="Last name"
+                    placeholder="Other names"
                     className={`w-full px-4 py-3 border rounded-lg text-ncb-heading font-medium placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-ncb-blue focus:border-transparent transition-all ${
                       errors.lastName ? 'border-red-500' : 'border-gray-300 hover:border-ncb-blue'
                     }`}
@@ -196,20 +196,20 @@ export default function WelcomePage({ onNavigateToProducts }) {
             {/* Sir Name Field */}
             <div className="mb-10">
               <label className="block text-sm font-semibold text-ncb-blue mb-3">
-                Sir Name <span className="text-red-500">*</span>
+                Surname <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
-                name="sirName"
-                value={formData.sirName}
+                name="surname"
+                value={formData.surname}
                 onChange={handleInputChange}
-                placeholder="Enter your sir name"
+                placeholder="Enter your surname"
                 className={`w-full px-4 py-3 border rounded-lg text-ncb-heading font-medium placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-ncb-blue focus:border-transparent transition-all ${
-                  errors.sirName ? 'border-red-500' : 'border-gray-300 hover:border-ncb-blue'
+                  errors.surname ? 'border-red-500' : 'border-gray-300 hover:border-ncb-blue'
                 }`}
               />
-              {errors.sirName && (
-                <p className="text-sm text-red-500 mt-2">{errors.sirName}</p>
+              {errors.surname && (
+                <p className="text-sm text-red-500 mt-2">{errors.surname}</p>
               )}
             </div>
 
