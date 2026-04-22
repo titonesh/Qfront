@@ -32,6 +32,7 @@ function ModernLoanCalculator({ selectedProduct, onChangeProduct, onBackHome }) 
   const [loanResultId, setLoanResultId] = useState(null);
   const [error, setError] = useState(null);
   const [successNotification, setSuccessNotification] = useState(null);
+  const [finishNotification, setFinishNotification] = useState(null);
 
   // Load customer info from sessionStorage (from Welcome page) and guard
   useEffect(() => {
@@ -149,6 +150,7 @@ function ModernLoanCalculator({ selectedProduct, onChangeProduct, onBackHome }) 
         phoneNumber: callbackData.phoneNumber,
         email: callbackData.email,
         referralNumber: callbackData.referralNumber,
+        preferredBranch: callbackData.preferredBranch,
         message: callbackData.message,
         loanInputsJson: JSON.stringify(formData),
         loanResultJson: JSON.stringify(result),
@@ -164,6 +166,15 @@ function ModernLoanCalculator({ selectedProduct, onChangeProduct, onBackHome }) 
       setSuccessNotification('Callback request failed. Please try again.');
       setTimeout(() => setSuccessNotification(null), 15000);
     }
+  };
+
+  const handleFinish = () => {
+    setFinishNotification('Thank you for using our mortgage prequalification tool. We\'re here whenever you\'re ready to take the next step. NCBA, Go For It.');
+    setTimeout(() => {
+      setFinishNotification(null);
+      sessionStorage.removeItem('customerInfo');
+      navigate('/welcome');
+    }, 3000);
   };
 
   return (
@@ -202,6 +213,33 @@ function ModernLoanCalculator({ selectedProduct, onChangeProduct, onBackHome }) 
                 <button 
                   onClick={() => setSuccessNotification(null)}
                   className="text-green-600 hover:text-green-800 text-sm font-medium"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Finish Notification */}
+      {finishNotification && (
+        <div className="fixed top-0 left-0 right-0 z-[60]">
+          <div className="progress-line" style={{background: 'linear-gradient(to right, #3AB3E5, #2d90b8)', animation: 'progressShrink 3s linear forwards'}}></div>
+          <div className="bg-ncb-blue-50 border-b border-ncb-blue-200 backdrop-blur-sm">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-5 h-5 bg-ncb-blue rounded-full flex items-center justify-center flex-shrink-0">
+                    <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" />
+                    </svg>
+                  </div>
+                  <p className="text-sm font-medium text-ncb-blue">{finishNotification}</p>
+                </div>
+                <button 
+                  onClick={() => setFinishNotification(null)}
+                  className="text-ncb-blue hover:text-ncb-blue-dark text-sm font-medium"
                 >
                   ✕
                 </button>
@@ -441,13 +479,22 @@ function ModernLoanCalculator({ selectedProduct, onChangeProduct, onBackHome }) 
                 </div>
 
                 {calculated && (
-                  <button
-                    type="button"
-                    onClick={() => setShowCallbackModal(true)}
-                    className="w-full py-2.5 bg-ncb-blue text-white font-semibold text-sm rounded-lg hover:bg-ncb-blue-dark transition-all flex items-center justify-center gap-2"
-                  >
-                    <Building size={16} /> Request Callback
-                  </button>
+                  <div className="space-y-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowCallbackModal(true)}
+                      className="w-full py-2.5 bg-ncb-blue text-white font-semibold text-sm rounded-lg hover:bg-ncb-blue-dark transition-all flex items-center justify-center gap-2"
+                    >
+                      <Building size={16} /> Request Callback
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleFinish}
+                      className="w-full py-2.5 bg-gray-200 text-ncb-heading font-semibold text-sm rounded-lg hover:bg-gray-300 transition-all"
+                    >
+                      Finish
+                    </button>
+                  </div>
                 )}
               </div>
             ) : (

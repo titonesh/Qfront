@@ -383,7 +383,7 @@ export default function HomePage() {
                             <button onClick={(e) => scrollToSection(e, 'hero')} className="text-ncb-text hover:text-ncb-blue transition-colors">Home</button>
                             <button onClick={(e) => scrollToSection(e, 'about')} className="text-ncb-text hover:text-ncb-blue transition-colors">How It Works</button>
                             <button onClick={(e) => scrollToSection(e, 'faqs')} className="text-ncb-text hover:text-ncb-blue transition-colors">FAQs</button>
-                            <button onClick={() => navigate('/products')} className="px-6 py-2 bg-ncb-blue text-white rounded-lg hover:bg-ncb-blue-dark transition-all shadow-md">
+                            <button onClick={() => navigate('/welcome')} className="px-6 py-2 bg-ncb-blue text-white rounded-lg hover:bg-ncb-blue-dark transition-all shadow-md">
                                 Get Started
                             </button>
                         </div>
@@ -402,7 +402,7 @@ export default function HomePage() {
                             <button onClick={(e) => scrollToSection(e, 'hero')} className="py-2 text-ncb-text">Home</button>
                             <button onClick={(e) => scrollToSection(e, 'about')} className="py-2 text-ncb-text">How It Works</button>
                             <button onClick={(e) => scrollToSection(e, 'faqs')} className="py-2 text-ncb-text">FAQs</button>
-                            <button onClick={() => navigate('/products')} className="py-3 bg-ncb-blue text-white rounded-lg">Get Started</button>
+                            <button onClick={() => navigate('/welcome')} className="py-3 bg-ncb-blue text-white rounded-lg">Get Started</button>
                         </div>
                     </div>
                 )}

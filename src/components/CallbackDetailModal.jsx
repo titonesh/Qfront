@@ -55,6 +55,12 @@ export default function CallbackDetailModal({ callback, onClose }) {
                   <p className="text-sm font-medium text-ncb-heading">{callback.referralNumber}</p>
                 </div>
               )}
+              {callback.preferredBranch && (
+                <div>
+                  <p className="text-xs text-ncb-text">Preferred Branch</p>
+                  <p className="text-sm font-medium text-ncb-heading">{callback.preferredBranch}</p>
+                </div>
+              )}
               {callback.message && (
                 <div>
                   <p className="text-xs text-ncb-text">Message</p>

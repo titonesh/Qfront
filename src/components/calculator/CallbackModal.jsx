@@ -1,5 +1,18 @@
 import React, { useState } from 'react';
-import { X, Phone, Mail, User, Hash } from 'lucide-react';
+import { X, Phone, Mail, User, Hash, MapPin } from 'lucide-react';
+
+const NCBA_BRANCHES = [
+  "ABC Place", "Bungoma", "Buru Buru", "Busia", "Changamwe (Magongo Rd)", "Chwele", "Ciata Mall", "City Centre",
+  "CPA Center Ruaraka", "Diani", "Eastleigh", "Embakasi", "Embu", "Galleria", "Garden City Mall", "Gikomba",
+  "Greenspan Mall", "Homa Bay", "Harbour House", "Industrial Area", "Junction", "Kahawa Sukari", "Kakamega",
+  "Kapsabet", "Karen", "Karatina", "Kenyatta Avenue", "Kericho", "Kiambu", "Kilifi", "Kisumu", "Kitale", "Kitui",
+  "Kenol", "Lavington", "Lavington Mall", "Limuru", "Machakos", "Mama Ngina Street", "Mamlaka Road", "Malindi",
+  "Meru", "Migori", "Moi Ave Mombasa", "NCBA House", "Nairobi", "Nakuru", "Naivasha", "Nanyuki", "Narok",
+  "Ngong", "Nyali (City Mall)", "Nyali (Naivas Centre)", "Nyeri", "Parklands", "Parkside Towers", "Prestige",
+  "Riverside", "Rongai", "Rosslyn Riviera", "Ruaku", "Ruiru Eastern Bypass", "Sameer Park", "Sarit Centre",
+  "The Hub Karen", "Thika Road Mall", "Two Rivers Mall", "Upper Hill", "Village Market", "Wabera Street", "Watamu",
+  "Westlands", "Wote"
+];
 
 export default function CallbackModal({ onClose, onSubmit }) {
   const [formData, setFormData] = useState({
@@ -7,13 +20,38 @@ export default function CallbackModal({ onClose, onSubmit }) {
     phoneNumber: '',
     email: '',
     referralNumber: '',
+    preferredBranch: '',
     message: '',
   });
+
+  const [showBranchDropdown, setShowBranchDropdown] = useState(false);
+  const [filteredBranches, setFilteredBranches] = useState([]);
+
+  const handleBranchInput = (value) => {
+    setFormData({ ...formData, preferredBranch: value });
+    
+    if (value.trim()) {
+      const filtered = NCBA_BRANCHES.filter(branch =>
+        branch.toLowerCase().includes(value.toLowerCase())
+      );
+      setFilteredBranches(filtered);
+      setShowBranchDropdown(true);
+    } else {
+      setFilteredBranches([]);
+      setShowBranchDropdown(false);
+    }
+  };
+
+  const handleBranchSelect = (branch) => {
+    setFormData({ ...formData, preferredBranch: branch });
+    setShowBranchDropdown(false);
+    setFilteredBranches([]);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     await onSubmit(formData);
-    setFormData({ fullName: '', phoneNumber: '', email: '', referralNumber: '', message: '' });
+    setFormData({ fullName: '', phoneNumber: '', email: '', referralNumber: '', preferredBranch: '', message: '' });
     setTimeout(() => onClose(), 1500);
   };
 
@@ -84,6 +122,35 @@ export default function CallbackModal({ onClose, onSubmit }) {
                 className="w-full pl-9 pr-3.5 py-1.5 text-sm border border-ncb-divider rounded-lg focus:outline-none focus:border-ncb-blue"
                 placeholder="Enter DSA code"
               />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-ncb-heading mb-0.5">Preferred Branch (Optional)</label>
+            <div className="relative">
+              <MapPin size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-ncb-text" />
+              <input
+                type="text"
+                value={formData.preferredBranch}
+                onChange={(e) => handleBranchInput(e.target.value)}
+                onFocus={() => formData.preferredBranch && setShowBranchDropdown(true)}
+                className="w-full pl-9 pr-3.5 py-1.5 text-sm border border-ncb-divider rounded-lg focus:outline-none focus:border-ncb-blue"
+                placeholder="Search or select a branch"
+              />
+              {showBranchDropdown && filteredBranches.length > 0 && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-ncb-divider rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
+                  {filteredBranches.map((branch, index) => (
+                    <button
+                      key={index}
+                      type="button"
+                      onClick={() => handleBranchSelect(branch)}
+                      className="w-full text-left px-3.5 py-2 hover:bg-ncb-blue-50 text-sm text-ncb-heading border-b border-ncb-divider last:border-b-0 transition-colors"
+                    >
+                      {branch}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 

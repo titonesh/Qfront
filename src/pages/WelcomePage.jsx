@@ -46,8 +46,8 @@ export default function WelcomePage({ onNavigateToProducts }) {
       newErrors.lastName = 'Last name is required';
     }
 
-    if (!formData.surName.trim()) {
-      newErrors.surName = 'Sir name is required';
+    if (!formData.sirName.trim()) {
+      newErrors.sirName = 'Sir name is required';
     }
 
     setErrors(newErrors);
@@ -200,16 +200,16 @@ export default function WelcomePage({ onNavigateToProducts }) {
               </label>
               <input
                 type="text"
-                name="surname"
-                value={formData.surname}
+                name="sirName"
+                value={formData.sirName}
                 onChange={handleInputChange}
                 placeholder="Enter your surname"
                 className={`w-full px-4 py-3 border rounded-lg text-ncb-heading font-medium placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-ncb-blue focus:border-transparent transition-all ${
-                  errors.surname ? 'border-red-500' : 'border-gray-300 hover:border-ncb-blue'
+                  errors.sirName ? 'border-red-500' : 'border-gray-300 hover:border-ncb-blue'
                 }`}
               />
-              {errors.surname && (
-                <p className="text-sm text-red-500 mt-2">{errors.surname}</p>
+              {errors.sirName && (
+                <p className="text-sm text-red-500 mt-2">{errors.sirName}</p>
               )}
             </div>
 
