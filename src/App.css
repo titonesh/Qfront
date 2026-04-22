@@ -17,6 +17,36 @@
   }
 }
 
+/* Toast Notifications */
+@keyframes slideIn {
+  from {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.animate-fade-in {
+  animation: slideIn 0.3s ease-out;
+}
+
+/* Shadow Card */
+.shadow-card {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
 .hero {
   position: relative;
 

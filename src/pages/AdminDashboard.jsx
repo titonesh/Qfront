@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, Phone, CheckCircle, Clock, Users, Download } from 'lucide-react';
+import { LogOut, Phone, CheckCircle, Clock, Users, Download, Search, Filter, X, ArrowUpDown, Copy, Check } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import callbackService from '../services/callbackService';
 import { formatCurrency, formatDate } from '../utils/formatters';
@@ -12,6 +12,27 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [selectedCallback, setSelectedCallback] = useState(null);
+  
+  // Search & Filter state
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [dateRange, setDateRange] = useState('7d');
+  const [showFilters, setShowFilters] = useState(false);
+  
+  // Pagination state
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [totalItems, setTotalItems] = useState(0);
+  
+  // Sorting state
+  const [sortBy, setSortBy] = useState('date');
+  const [sortOrder, setSortOrder] = useState('desc');
+  
+  // Action state
+  const [actionLoading, setActionLoading] = useState(false);
+  const [toast, setToast] = useState(null);
+  const [confirmDialog, setConfirmDialog] = useState(null);
+  const [copiedId, setCopiedId] = useState(null);
 
   useEffect(() => {
     const token = localStorage.getItem('adminToken');
@@ -20,14 +41,23 @@ export default function AdminDashboard() {
       return;
     }
     fetchCallbacks();
-  }, []);
+  }, [page, statusFilter, dateRange, searchQuery]);
 
   const fetchCallbacks = async () => {
     try {
-      const data = await callbackService.getAllCallbacks();
+      setLoading(true);
+      const data = await callbackService.getAllCallbacks(
+        page,
+        pageSize,
+        searchQuery,
+        statusFilter,
+        dateRange
+      );
       setCallbacks(data.items || []);
+      setTotalItems(data.total || 0);
     } catch (error) {
       console.error('Failed to fetch callbacks:', error);
+      showToast('Failed to fetch callbacks', 'error');
     } finally {
       setLoading(false);
     }
@@ -38,12 +68,41 @@ export default function AdminDashboard() {
     navigate('/admin-login');
   };
 
+  const showToast = (message, type = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  };
+
+  const showConfirm = (title, message, onConfirm) => {
+    setConfirmDialog({ title, message, onConfirm });
+  };
+
   const handleBulkContacted = async () => {
-    const ids = Array.from(selectedIds);
-    if (ids.length === 0) return;
-    await callbackService.bulkUpdateCallbacks(ids, 'markContacted');
-    setSelectedIds(new Set());
-    fetchCallbacks();
+    showConfirm(
+      'Mark as Contacted',
+      `Are you sure you want to mark ${selectedIds.size} selected item(s) as contacted?`,
+      async () => {
+        try {
+          setActionLoading(true);
+          const ids = Array.from(selectedIds);
+          await callbackService.bulkUpdateCallbacks(ids, 'markContacted');
+          setSelectedIds(new Set());
+          setConfirmDialog(null);
+          showToast(`Successfully marked ${ids.length} item(s) as contacted`);
+          fetchCallbacks();
+        } catch (error) {
+          showToast('Failed to update callbacks', 'error');
+        } finally {
+          setActionLoading(false);
+        }
+      }
+    );
+  };
+
+  const handleCopyId = (id) => {
+    navigator.clipboard.writeText(id.toString());
+    setCopiedId(id);
+    setTimeout(() => setCopiedId(null), 2000);
   };
 
   const handleExportExcel = () => {
@@ -193,23 +252,61 @@ export default function AdminDashboard() {
   };
 
   const stats = {
-    total: callbacks.length,
+    total: totalItems,
     pending: callbacks.filter(c => !c.isProcessed).length,
     contacted: callbacks.filter(c => c.isProcessed).length,
+    conversionRate: totalItems > 0 ? Math.round((callbacks.filter(c => c.isProcessed).length / callbacks.length) * 100) : 0,
   };
+
+  const totalPages = Math.ceil(totalItems / pageSize);
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">Loading...</div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-ncb-blue"></div>
+          <p className="mt-4 text-ncb-text">Loading callbacks...</p>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Toast Notifications */}
+      {toast && (
+        <div className={`fixed top-4 right-4 px-4 py-3 rounded-lg text-white z-50 animate-fade-in ${toast.type === 'success' ? 'bg-green-600' : 'bg-red-600'}`}>
+          {toast.message}
+        </div>
+      )}
+
+      {/* Confirmation Dialog */}
+      {confirmDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl max-w-sm p-6">
+            <h3 className="text-lg font-bold text-ncb-heading mb-2">{confirmDialog.title}</h3>
+            <p className="text-ncb-text mb-6">{confirmDialog.message}</p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setConfirmDialog(null)}
+                className="px-4 py-2 border border-ncb-divider rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDialog.onConfirm}
+                disabled={actionLoading}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+              >
+                {actionLoading ? 'Processing...' : 'Confirm'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
-      <header className="bg-white border-b border-ncb-divider sticky top-0 z-50">
+      <header className="bg-white border-b border-ncb-divider sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <h1 className="text-xl font-bold text-ncb-heading">Admin Dashboard</h1>
@@ -222,7 +319,7 @@ export default function AdminDashboard() {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <div className="bg-white rounded-xl p-6 shadow-card">
             <div className="flex items-center justify-between">
               <div>
@@ -250,20 +347,124 @@ export default function AdminDashboard() {
               <CheckCircle size={32} className="text-green-500" />
             </div>
           </div>
+          <div className="bg-white rounded-xl p-6 shadow-card">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-ncb-text text-sm">Conversion Rate</p>
+                <p className="text-3xl font-bold text-blue-600">{stats.conversionRate}%</p>
+              </div>
+              <Users size={32} className="text-blue-500" />
+            </div>
+          </div>
         </div>
 
-        {/* Actions */}
+        {/* Search & Filter Bar */}
+        <div className="bg-white rounded-xl shadow-card mb-6 p-4">
+          <div className="flex flex-col md:flex-row gap-4">
+            {/* Search */}
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-3 text-gray-400" size={20} />
+              <input
+                type="text"
+                placeholder="Search by name, phone, email..."
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setPage(1);
+                }}
+                className="w-full pl-10 pr-4 py-2 border border-ncb-divider rounded-lg focus:outline-none focus:ring-2 focus:ring-ncb-blue"
+              />
+            </div>
+
+            {/* Filter Button */}
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className="flex items-center gap-2 px-4 py-2 border border-ncb-divider rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              <Filter size={18} />
+              Filters
+            </button>
+
+            {/* Export Button */}
+            <button
+              onClick={handleExportExcel}
+              className="flex items-center gap-2 px-4 py-2 border border-ncb-divider rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              <Download size={18} /> Export
+            </button>
+          </div>
+
+          {/* Filter Panel */}
+          {showFilters && (
+            <div className="mt-4 pt-4 border-t border-ncb-divider grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="text-sm font-semibold text-ncb-heading mb-2 block">Status</label>
+                <select
+                  value={statusFilter}
+                  onChange={(e) => {
+                    setStatusFilter(e.target.value);
+                    setPage(1);
+                  }}
+                  className="w-full px-3 py-2 border border-ncb-divider rounded-lg focus:outline-none focus:ring-2 focus:ring-ncb-blue"
+                >
+                  <option value="all">All Status</option>
+                  <option value="new">Pending</option>
+                  <option value="contacted">Contacted</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold text-ncb-heading mb-2 block">Date Range</label>
+                <select
+                  value={dateRange}
+                  onChange={(e) => {
+                    setDateRange(e.target.value);
+                    setPage(1);
+                  }}
+                  className="w-full px-3 py-2 border border-ncb-divider rounded-lg focus:outline-none focus:ring-2 focus:ring-ncb-blue"
+                >
+                  <option value="1d">Last 24 Hours</option>
+                  <option value="7d">Last 7 Days</option>
+                  <option value="30d">Last 30 Days</option>
+                  <option value="all">All Time</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold text-ncb-heading mb-2 block">Items Per Page</label>
+                <select
+                  value={pageSize}
+                  onChange={(e) => {
+                    setPageSize(parseInt(e.target.value));
+                    setPage(1);
+                  }}
+                  className="w-full px-3 py-2 border border-ncb-divider rounded-lg focus:outline-none focus:ring-2 focus:ring-ncb-blue"
+                >
+                  <option value="10">10</option>
+                  <option value="25">25</option>
+                  <option value="50">50</option>
+                </select>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Actions Bar */}
         <div className="bg-white rounded-xl shadow-card mb-6 p-4 flex justify-between items-center">
           <div className="flex items-center gap-4">
             {selectedIds.size > 0 && (
-              <button onClick={handleBulkContacted} className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
-                Mark Selected as Contacted ({selectedIds.size})
-              </button>
+              <>
+                <p className="text-sm text-ncb-text">{selectedIds.size} selected</p>
+                <button
+                  onClick={handleBulkContacted}
+                  disabled={actionLoading}
+                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors"
+                >
+                  Mark as Contacted
+                </button>
+              </>
             )}
           </div>
-          <button onClick={handleExportExcel} className="flex items-center gap-2 px-4 py-2 border border-ncb-divider rounded-lg hover:bg-gray-50 transition-colors">
-            <Download size={16} /> Export Excel
-          </button>
         </div>
 
         {/* Table */}
@@ -284,49 +485,112 @@ export default function AdminDashboard() {
                       }}
                     />
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-ncb-text uppercase">ID</th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-ncb-text uppercase">Date</th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-ncb-text uppercase cursor-pointer hover:bg-gray-100" onClick={() => setSortBy('id')}>
+                    ID {sortBy === 'id' && <ArrowUpDown size={14} className="inline" />}
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-ncb-text uppercase cursor-pointer hover:bg-gray-100" onClick={() => setSortBy('date')}>
+                    Date {sortBy === 'date' && <ArrowUpDown size={14} className="inline" />}
+                  </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-ncb-text uppercase">Name</th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-ncb-text uppercase">Phone</th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-ncb-text uppercase">Email</th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-ncb-text uppercase">Status</th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-ncb-text uppercase">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {callbacks.map((callback) => (
-                  <tr
-                    key={callback.id}
-                    onClick={() => setSelectedCallback(callback)}
-                    className="border-b border-ncb-divider hover:bg-blue-50 cursor-pointer transition-colors"
-                  >
-                    <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
-                      <input
-                        type="checkbox"
-                        checked={selectedIds.has(callback.id)}
-                        onChange={(e) => {
-                          e.stopPropagation();
-                          const newSet = new Set(selectedIds);
-                          if (e.target.checked) newSet.add(callback.id);
-                          else newSet.delete(callback.id);
-                          setSelectedIds(newSet);
-                        }}
-                      />
-                    </td>
-                    <td className="px-6 py-4 text-sm text-ncb-text">{callback.id}</td>
-                    <td className="px-6 py-4 text-sm text-ncb-text">{formatDate(callback.createdAt)}</td>
-                    <td className="px-6 py-4 text-sm font-medium text-ncb-heading">{callback.fullName}</td>
-                    <td className="px-6 py-4 text-sm text-ncb-text">{callback.phoneNumber}</td>
-                    <td className="px-6 py-4 text-sm text-ncb-text">{callback.email}</td>
-                    <td className="px-6 py-4">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${callback.isProcessed ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
-                        {callback.isProcessed ? 'Contacted' : 'Pending'}
-                      </span>
+                {callbacks.length === 0 ? (
+                  <tr>
+                    <td colSpan="8" className="px-6 py-8 text-center text-ncb-text">
+                      No callbacks found
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  callbacks.map((callback) => (
+                    <tr
+                      key={callback.id}
+                      className="border-b border-ncb-divider hover:bg-blue-50 transition-colors"
+                    >
+                      <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.has(callback.id)}
+                          onChange={(e) => {
+                            e.stopPropagation();
+                            const newSet = new Set(selectedIds);
+                            if (e.target.checked) newSet.add(callback.id);
+                            else newSet.delete(callback.id);
+                            setSelectedIds(newSet);
+                          }}
+                        />
+                      </td>
+                      <td className="px-6 py-4 text-sm text-ncb-text cursor-pointer hover:text-ncb-blue flex items-center gap-2" onClick={() => handleCopyId(callback.id)}>
+                        {callback.id}
+                        {copiedId === callback.id ? (
+                          <Check size={14} className="text-green-600" />
+                        ) : (
+                          <Copy size={14} className="opacity-0 group-hover:opacity-100" />
+                        )}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-ncb-text">{formatDate(callback.createdAt)}</td>
+                      <td className="px-6 py-4 text-sm font-medium text-ncb-heading cursor-pointer hover:text-ncb-blue" onClick={() => setSelectedCallback(callback)}>
+                        {callback.fullName}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-ncb-text">{callback.phoneNumber}</td>
+                      <td className="px-6 py-4 text-sm text-ncb-text truncate">{callback.email}</td>
+                      <td className="px-6 py-4">
+                        <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${callback.isProcessed ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                          {callback.isProcessed ? 'Contacted' : 'Pending'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-sm">
+                        <button
+                          onClick={() => setSelectedCallback(callback)}
+                          className="text-ncb-blue hover:underline"
+                        >
+                          View
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="bg-gray-50 border-t border-ncb-divider px-6 py-4 flex justify-between items-center">
+              <p className="text-sm text-ncb-text">
+                Showing {(page - 1) * pageSize + 1} to {Math.min(page * pageSize, totalItems)} of {totalItems} results
+              </p>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setPage(Math.max(1, page - 1))}
+                  disabled={page === 1}
+                  className="px-3 py-1 border border-ncb-divider rounded hover:bg-gray-100 disabled:opacity-50 transition-colors"
+                >
+                  Previous
+                </button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+                  <button
+                    key={p}
+                    onClick={() => setPage(p)}
+                    className={`px-3 py-1 rounded transition-colors ${p === page ? 'bg-ncb-blue text-white' : 'border border-ncb-divider hover:bg-gray-100'}`}
+                  >
+                    {p}
+                  </button>
+                ))}
+                <button
+                  onClick={() => setPage(Math.min(totalPages, page + 1))}
+                  disabled={page === totalPages}
+                  className="px-3 py-1 border border-ncb-divider rounded hover:bg-gray-100 disabled:opacity-50 transition-colors"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </main>
 
