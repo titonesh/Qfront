@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, Phone, CheckCircle, Clock, Users, Download, Search, Filter, X, ArrowUpDown, Copy, Check } from 'lucide-react';
+import { LogOut, Users, Download, Search, Filter, X, ArrowUpDown, Copy, Check } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import callbackService from '../services/callbackService';
 import { formatCurrency, formatDate } from '../utils/formatters';
@@ -436,39 +436,27 @@ export default function AdminDashboard() {
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <div className="bg-blue rounded-xl p-6 shadow-card">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-ncb-text text-sm">Total Callbacks</p>
-                <p className="text-3xl font-bold text-ncb-blue">{stats.total}</p>
-              </div>
-              <Phone size={32} className="text-ncb-blue" />
+            <div>
+              <p className="text-ncb-text text-sm">Total Callbacks</p>
+              <p className="text-3xl font-bold text-ncb-blue">{stats.total}</p>
             </div>
           </div>
           <div className="bg-white rounded-xl p-6 shadow-card">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-ncb-text text-sm">Pending</p>
-                <p className="text-3xl font-bold text-ncb-blue">{stats.pending}</p>
-              </div>
-              <Clock size={32} className="text-ncb-blue" />
+            <div>
+              <p className="text-ncb-text text-sm">Pending</p>
+              <p className="text-3xl font-bold text-ncb-blue">{stats.pending}</p>
             </div>
           </div>
           <div className="bg-white rounded-xl p-6 shadow-card">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-ncb-text text-sm">Contacted</p>
-                <p className="text-3xl font-bold text-ncb-blue">{stats.contacted}</p>
-              </div>
-              <CheckCircle size={32} className="text-ncb-blue" />
+            <div>
+              <p className="text-ncb-text text-sm">Contacted</p>
+              <p className="text-3xl font-bold text-ncb-blue">{stats.contacted}</p>
             </div>
           </div>
           <div className="bg-white rounded-xl p-6 shadow-card">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-ncb-text text-sm">Conversion Rate</p>
-                <p className="text-3xl font-bold text-ncb-blue">{stats.conversionRate}%</p>
-              </div>
-              <Users size={32} className="text-ncb-blue" />
+            <div>
+              <p className="text-ncb-text text-sm">Conversion Rate</p>
+              <p className="text-3xl font-bold text-ncb-blue">{stats.conversionRate}%</p>
             </div>
           </div>
         </div>
