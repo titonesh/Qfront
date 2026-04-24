@@ -120,8 +120,8 @@ import ModernLoanCalculator from '../components/calculator/ModernLoanCalculator'
 import NCBALogo from '../assets/images/logo.png';
 
 // Import product images
-import AffordableHousingImage from '../assets/images/housing.jpg';
-import StandardMortgageImage from '../assets/images/mortgage.jpg';
+import AffordableHousingImage from '../assets/images/AI 1.jpg';
+import StandardMortgageImage from '../assets/images/AI 2.jpg';
 
 const MORTGAGE_PRODUCTS = [
   {

@@ -352,7 +352,7 @@ export default function HomePage() {
     };
 
     const processSteps = [
-        { number: '01', title: 'Register Account', description: 'Provide basic information to get started with your mortgage journey.' },
+        { number: '01', title: 'Basic Info', description: 'Provide basic information to get started with your mortgage journey.' },
         { number: '02', title: 'Complete Financial Profile', description: 'Fill in your income, obligations, and property preferences for accurate assessments.' },
         { number: '03', title: 'Get Instant Prequalification', description: 'Receive immediate affordability assessment and explore mortgage options that suit your needs.' }
     ];
