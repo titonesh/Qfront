@@ -1,17 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Calculator, Building, Briefcase } from 'lucide-react';
+import { ArrowLeft, Calculator, Building } from 'lucide-react';
 import loanService from '../../services/loanService';
 import callbackService from '../../services/callbackService';
 import { formatCurrency, formatNumberInput, parseNumberInput } from '../../utils/formatters';
 import CallbackModal from './CallbackModal';
 
-const KENYAN_TOWNS = ['Nairobi', 'Mombasa', 'Kisumu', 'Nakuru', 'Eldoret'];
+const KENYAN_TOWNS = [
+  'Nairobi', 'Mombasa', 'Kisumu', 'Nakuru', 'Eldoret', 'Kericho', 'Nyeri', 'Thika',
+  'Naivasha', 'Machakos', 'Malindi', 'Lamu', 'Isiolo', 'Meru', 'Embu', 'Murang\'a',
+  'Bomet', 'Kisii', 'Migori', 'Kakamega', 'Bungoma', 'Kitale', 'Kapsabet', 'Nakuru',
+  'Narok', 'Kericho', 'Kapsabet', 'Karatina', 'Nyahururu', 'Rumuruti', 'Kerugoya'
+];
 
-function ModernLoanCalculator({ selectedProduct, onChangeProduct, onBackHome }) {
+function ModernLoanCalculator({ selectedProduct, incomeSource = 'employed', onChangeProduct, onBackHome }) {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    incomeSource: 'employed',
+    incomeSource: incomeSource,
     monthlySalaryIncome: '',
     monthlyBusinessIncome: '',
     existingLoanObligations: '',
@@ -33,6 +38,16 @@ function ModernLoanCalculator({ selectedProduct, onChangeProduct, onBackHome }) 
   const [error, setError] = useState(null);
   const [successNotification, setSuccessNotification] = useState(null);
   const [finishNotification, setFinishNotification] = useState(null);
+  const [locationSearch, setLocationSearch] = useState('');
+  const [showLocationSuggestions, setShowLocationSuggestions] = useState(false);
+  const [hasCreditCard, setHasCreditCard] = useState('no');
+  const [hasOverdraft, setHasOverdraft] = useState('no');
+
+  const filteredLocations = locationSearch.trim()
+    ? KENYAN_TOWNS.filter(town =>
+        town.toLowerCase().includes(locationSearch.toLowerCase())
+      )
+    : KENYAN_TOWNS;
 
   // Load customer info from sessionStorage (from Welcome page) and guard
   useEffect(() => {
@@ -75,6 +90,42 @@ function ModernLoanCalculator({ selectedProduct, onChangeProduct, onBackHome }) 
       setFormData({ ...formData, [name]: formatted });
     } else {
       setFormData({ ...formData, [name]: value });
+    }
+  };
+
+  const handleLocationSearch = (e) => {
+    setLocationSearch(e.target.value);
+    setShowLocationSuggestions(true);
+  };
+
+  const handleSelectLocation = (location) => {
+    setFormData(prev => ({
+      ...prev,
+      businessLocation: location
+    }));
+    setLocationSearch('');
+    setShowLocationSuggestions(false);
+  };
+
+  const handleCreditCardChange = (value) => {
+    setHasCreditCard(value);
+    // If user selects "no", clear the credit card limit
+    if (value === 'no') {
+      setFormData(prev => ({
+        ...prev,
+        creditCardLimit: ''
+      }));
+    }
+  };
+
+  const handleOverdraftChange = (value) => {
+    setHasOverdraft(value);
+    // If user selects "no", clear the overdraft limit
+    if (value === 'no') {
+      setFormData(prev => ({
+        ...prev,
+        overdraftLimit: ''
+      }));
     }
   };
 
@@ -276,25 +327,15 @@ function ModernLoanCalculator({ selectedProduct, onChangeProduct, onBackHome }) 
           <div className="bg-white rounded-2xl shadow-card p-5">
             <h2 className="text-lg font-bold text-ncb-heading mb-5">Financial Information</h2>
             
-            {/* Income Source Toggle */}
-            {selectedProduct.id === 'ahf' && (
-              <div className="flex gap-3 mb-5 p-1 bg-gray-100 rounded-lg">
-                <button
-                  type="button"
-                  onClick={() => setFormData({ ...formData, incomeSource: 'employed' })}
-                  className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg transition-all text-sm ${formData.incomeSource === 'employed' ? 'bg-ncb-blue text-white' : 'text-ncb-text'}`}
-                >
-                  <Briefcase size={16} /> Employed
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setFormData({ ...formData, incomeSource: 'business' })}
-                  className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg transition-all text-sm ${formData.incomeSource === 'business' ? 'bg-ncb-blue text-white' : 'text-ncb-text'}`}
-                >
-                  <Building size={16} /> Business
-                </button>
-              </div>
-            )}
+            {/* Income Source Badge (showing selected source, not toggleable) */}
+            <div className="mb-5 p-2.5 bg-ncb-blue-50 border border-ncb-blue-100 rounded-lg">
+              <p className="text-xs text-ncb-text">
+                <span className="font-semibold">Income Source:</span> 
+                <span className="font-medium text-ncb-blue ml-2">
+                  {formData.incomeSource === 'employed' ? '💼 Employed' : '🏢 Business'}
+                </span>
+              </p>
+            </div>
 
             <div className="space-y-3.5">
               {/* Income fields based on source */}
@@ -352,15 +393,62 @@ function ModernLoanCalculator({ selectedProduct, onChangeProduct, onBackHome }) 
                     </div>
                     <div>
                       <label className="block text-xs font-semibold text-ncb-heading mb-0.5">Business Location</label>
-                      <select
-                        name="businessLocation"
-                        value={formData.businessLocation}
-                        onChange={handleInputChange}
-                        className="w-full px-2.5 py-1 text-xs border border-ncb-divider rounded-lg"
-                      >
-                        <option value="">Select location</option>
-                        {KENYAN_TOWNS.map(town => <option key={town} value={town}>{town}</option>)}
-                      </select>
+                      <div className="relative">
+                        {formData.businessLocation ? (
+                          <div className="flex items-center gap-1.5">
+                            <div className="flex-1 px-2.5 py-1 border border-green-300 bg-green-50 rounded-lg text-xs text-ncb-heading font-medium">
+                              {formData.businessLocation}
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setFormData(prev => ({
+                                  ...prev,
+                                  businessLocation: ''
+                                }));
+                                setLocationSearch('');
+                              }}
+                              className="px-2 py-1 text-xs text-ncb-blue hover:bg-ncb-blue-50 rounded transition-colors"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        ) : (
+                          <>
+                            <input
+                              type="text"
+                              value={locationSearch}
+                              onChange={handleLocationSearch}
+                              onFocus={() => setShowLocationSuggestions(true)}
+                              placeholder="Type location..."
+                              className="w-full px-2.5 py-1 text-xs border border-ncb-divider rounded-lg focus:outline-none focus:ring-1 focus:ring-ncb-blue focus:border-transparent"
+                            />
+                            
+                            {/* Suggestions Dropdown */}
+                            {showLocationSuggestions && filteredLocations.length > 0 && (
+                              <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-ncb-divider rounded-lg shadow-lg z-10 max-h-40 overflow-y-auto">
+                                {filteredLocations.map((town) => (
+                                  <button
+                                    key={town}
+                                    type="button"
+                                    onClick={() => handleSelectLocation(town)}
+                                    className="w-full text-left px-2.5 py-1.5 hover:bg-ncb-blue-50 text-xs text-ncb-heading font-medium transition-colors border-b border-ncb-divider last:border-b-0"
+                                  >
+                                    {town}
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+
+                            {/* No results message */}
+                            {showLocationSuggestions && locationSearch && filteredLocations.length === 0 && (
+                              <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-ncb-divider rounded-lg shadow-lg z-10 p-2">
+                                <p className="text-xs text-ncb-text">No matching locations found</p>
+                              </div>
+                            )}
+                          </>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </>
@@ -380,28 +468,91 @@ function ModernLoanCalculator({ selectedProduct, onChangeProduct, onBackHome }) 
               </div>
 
               {/* Credit Card & Overdraft */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-3">
+                {/* Credit Card Question */}
                 <div>
-                  <label className="block text-xs font-semibold text-ncb-heading mb-0.5">Credit Card Limit</label>
-                  <input
-                    type="text"
-                    name="creditCardLimit"
-                    value={formData.creditCardLimit}
-                    onChange={handleInputChange}
-                    className="w-full px-2.5 py-1 text-xs border border-ncb-divider rounded-lg"
-                    placeholder="e.g., 50,000"
-                  />
+                  <label className="block text-xs font-semibold text-ncb-heading mb-2">Do you have a credit card?</label>
+                  <div className="flex gap-3">
+                    <label className="flex items-center gap-1.5 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="hasCreditCard"
+                        value="yes"
+                        checked={hasCreditCard === 'yes'}
+                        onChange={(e) => handleCreditCardChange(e.target.value)}
+                        className="w-3 h-3 text-ncb-blue cursor-pointer"
+                      />
+                      <span className="text-xs text-ncb-text">Yes</span>
+                    </label>
+                    <label className="flex items-center gap-1.5 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="hasCreditCard"
+                        value="no"
+                        checked={hasCreditCard === 'no'}
+                        onChange={(e) => handleCreditCardChange(e.target.value)}
+                        className="w-3 h-3 text-ncb-blue cursor-pointer"
+                      />
+                      <span className="text-xs text-ncb-text">No</span>
+                    </label>
+                  </div>
+                  
+                  {/* Credit Card Input - Shown only if Yes */}
+                  {hasCreditCard === 'yes' && (
+                    <div className="mt-2 p-2 bg-ncb-blue-50 rounded-lg">
+                      <input
+                        type="text"
+                        name="creditCardLimit"
+                        value={formData.creditCardLimit}
+                        onChange={handleInputChange}
+                        className="w-full px-2.5 py-1 text-xs border border-ncb-divider rounded-lg bg-white"
+                        placeholder="e.g., 50,000"
+                      />
+                    </div>
+                  )}
                 </div>
+
+                {/* Overdraft Question */}
                 <div>
-                  <label className="block text-xs font-semibold text-ncb-heading mb-0.5">Overdraft Limit</label>
-                  <input
-                    type="text"
-                    name="overdraftLimit"
-                    value={formData.overdraftLimit}
-                    onChange={handleInputChange}
-                    className="w-full px-2.5 py-1 text-xs border border-ncb-divider rounded-lg"
-                    placeholder="e.g., 20,000"
-                  />
+                  <label className="block text-xs font-semibold text-ncb-heading mb-2">Do you have an overdraft limit?</label>
+                  <div className="flex gap-3">
+                    <label className="flex items-center gap-1.5 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="hasOverdraft"
+                        value="yes"
+                        checked={hasOverdraft === 'yes'}
+                        onChange={(e) => handleOverdraftChange(e.target.value)}
+                        className="w-3 h-3 text-ncb-blue cursor-pointer"
+                      />
+                      <span className="text-xs text-ncb-text">Yes</span>
+                    </label>
+                    <label className="flex items-center gap-1.5 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="hasOverdraft"
+                        value="no"
+                        checked={hasOverdraft === 'no'}
+                        onChange={(e) => handleOverdraftChange(e.target.value)}
+                        className="w-3 h-3 text-ncb-blue cursor-pointer"
+                      />
+                      <span className="text-xs text-ncb-text">No</span>
+                    </label>
+                  </div>
+                  
+                  {/* Overdraft Input - Shown only if Yes */}
+                  {hasOverdraft === 'yes' && (
+                    <div className="mt-2 p-2 bg-ncb-blue-50 rounded-lg">
+                      <input
+                        type="text"
+                        name="overdraftLimit"
+                        value={formData.overdraftLimit}
+                        onChange={handleInputChange}
+                        className="w-full px-2.5 py-1 text-xs border border-ncb-divider rounded-lg bg-white"
+                        placeholder="e.g., 20,000"
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
 

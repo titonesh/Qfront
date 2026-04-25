@@ -3,10 +3,28 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowRight, ArrowLeft } from 'lucide-react';
 import bgImage from '../assets/images/bgdncba.jpg';
 
+const COMPANY_OPTIONS = [
+  'NCBA Bank',
+  'Safaricom',
+  'Kenya Power',
+  'Kenya Airways',
+  'Equity Bank',
+  'KCB Bank',
+  'Co-operative Bank',
+  'Standard Chartered',
+  'Barclays Bank',
+  'Diamond Trust Bank',
+  'Other'
+];
+
 export default function WelcomePage({ onNavigateToProducts }) {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    customerType: 'existing',
+    hasNCBAccount: '',
+    incomeSource: '',
+    businessRegNo: '',
+    employerName: '',
+    selectedCompany: '',
     idNumber: '',
     firstName: '',
     lastName: '',
@@ -14,6 +32,14 @@ export default function WelcomePage({ onNavigateToProducts }) {
   });
 
   const [errors, setErrors] = useState({});
+  const [companySearch, setCompanySearch] = useState('');
+  const [showCompanySuggestions, setShowCompanySuggestions] = useState(false);
+
+  const filteredCompanies = companySearch.trim()
+    ? COMPANY_OPTIONS.filter(company =>
+        company.toLowerCase().includes(companySearch.toLowerCase())
+      )
+    : COMPANY_OPTIONS;
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -30,8 +56,37 @@ export default function WelcomePage({ onNavigateToProducts }) {
     }
   };
 
+  const handleCompanySearch = (e) => {
+    setCompanySearch(e.target.value);
+    setShowCompanySuggestions(true);
+  };
+
+  const handleSelectCompany = (company) => {
+    setFormData(prev => ({
+      ...prev,
+      selectedCompany: company,
+      employerName: '' // Reset employerName when selection changes
+    }));
+    setCompanySearch('');
+    setShowCompanySuggestions(false);
+    if (errors.selectedCompany) {
+      setErrors(prev => ({
+        ...prev,
+        selectedCompany: ''
+      }));
+    }
+  };
+
   const validateForm = () => {
     const newErrors = {};
+
+    if (!formData.hasNCBAccount) {
+      newErrors.hasNCBAccount = 'Please indicate if you have an NCB account';
+    }
+
+    if (!formData.incomeSource) {
+      newErrors.incomeSource = 'Please select your source of income';
+    }
 
     if (!formData.idNumber.trim()) {
       newErrors.idNumber = 'ID/Passport number is required';
@@ -48,7 +103,20 @@ export default function WelcomePage({ onNavigateToProducts }) {
     }
 
     if (!formData.sirName.trim()) {
-      newErrors.sirName = 'Sir name is required';
+      newErrors.sirName = 'Surname is required';
+    }
+
+    // Validate income source specific fields
+    if (formData.incomeSource === 'business' && !formData.businessRegNo.trim()) {
+      newErrors.businessRegNo = 'Business registration number or name is required';
+    }
+
+    if (formData.incomeSource === 'employed') {
+      if (!formData.selectedCompany) {
+        newErrors.selectedCompany = 'Please select your employer';
+      } else if (formData.selectedCompany === 'Other' && !formData.employerName.trim()) {
+        newErrors.employerName = 'Please specify your employer name';
+      }
     }
 
     setErrors(newErrors);
@@ -57,7 +125,6 @@ export default function WelcomePage({ onNavigateToProducts }) {
 
   const handleNext = () => {
     if (validateForm()) {
-      // Store customer data in sessionStorage or pass through context
       sessionStorage.setItem('customerInfo', JSON.stringify(formData));
       navigate('/products', { state: { customerInfo: formData } });
     }
@@ -108,28 +175,191 @@ export default function WelcomePage({ onNavigateToProducts }) {
 
           {/* Form Card */}
           <div className="bg-white rounded-2xl border border-ncb-divider p-8 shadow-sm">
-            {/* Customer Type Section */}
+            {/* NCB Account Section */}
             <div className="mb-8">
               <label className="block text-sm font-semibold text-ncb-blue mb-3">
-                Are you an existing or new customer? <span className="text-red-500">*</span>
+                Do you have an NCB account? <span className="text-red-500">*</span>
               </label>
-              <div className="relative">
-                <select
-                  name="customerType"
-                  value={formData.customerType}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-white text-ncb-heading font-medium appearance-none cursor-pointer hover:border-ncb-blue focus:outline-none focus:ring-2 focus:ring-ncb-blue focus:border-transparent transition-all"
-                >
-                  <option value="existing">Existing</option>
-                  <option value="new">New</option>
-                </select>
-                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                  <svg className="w-5 h-5 text-ncb-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-                  </svg>
-                </div>
+              <div className="flex gap-4">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="hasNCBAccount"
+                    value="yes"
+                    checked={formData.hasNCBAccount === 'yes'}
+                    onChange={handleInputChange}
+                    className="w-4 h-4 text-ncb-blue cursor-pointer"
+                  />
+                  <span className="text-ncb-text">Yes</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="hasNCBAccount"
+                    value="no"
+                    checked={formData.hasNCBAccount === 'no'}
+                    onChange={handleInputChange}
+                    className="w-4 h-4 text-ncb-blue cursor-pointer"
+                  />
+                  <span className="text-ncb-text">No</span>
+                </label>
               </div>
+              {errors.hasNCBAccount && (
+                <p className="text-sm text-red-500 mt-2">{errors.hasNCBAccount}</p>
+              )}
             </div>
+
+            {/* Source of Income Section */}
+            <div className="mb-8">
+              <label className="block text-sm font-semibold text-ncb-blue mb-3">
+                Source of Income <span className="text-red-500">*</span>
+              </label>
+              <div className="flex gap-4">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="incomeSource"
+                    value="employed"
+                    checked={formData.incomeSource === 'employed'}
+                    onChange={handleInputChange}
+                    className="w-4 h-4 text-ncb-blue cursor-pointer"
+                  />
+                  <span className="text-ncb-text">Employed</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="incomeSource"
+                    value="business"
+                    checked={formData.incomeSource === 'business'}
+                    onChange={handleInputChange}
+                    className="w-4 h-4 text-ncb-blue cursor-pointer"
+                  />
+                  <span className="text-ncb-text">Business</span>
+                </label>
+              </div>
+              {errors.incomeSource && (
+                <p className="text-sm text-red-500 mt-2">{errors.incomeSource}</p>
+              )}
+            </div>
+
+            {/* Business Fields */}
+            {formData.incomeSource === 'business' && (
+              <div className="mb-8 p-4 bg-ncb-blue-50 rounded-lg border border-ncb-blue-100">
+                <label className="block text-sm font-semibold text-ncb-blue mb-3">
+                  Reg No / Business Name <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="businessRegNo"
+                  value={formData.businessRegNo}
+                  onChange={handleInputChange}
+                  placeholder="Enter your business registration number or name"
+                  className={`w-full px-4 py-3 border rounded-lg text-ncb-heading font-medium placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-ncb-blue focus:border-transparent transition-all ${
+                    errors.businessRegNo ? 'border-red-500' : 'border-gray-300 hover:border-ncb-blue'
+                  }`}
+                />
+                {errors.businessRegNo && (
+                  <p className="text-sm text-red-500 mt-2">{errors.businessRegNo}</p>
+                )}
+              </div>
+            )}
+
+            {/* Employed Fields */}
+            {formData.incomeSource === 'employed' && (
+              <div className="mb-8 p-4 bg-ncb-blue-50 rounded-lg border border-ncb-blue-100">
+                <label className="block text-sm font-semibold text-ncb-blue mb-3">
+                  Select Your Employer <span className="text-red-500">*</span>
+                </label>
+                
+                {/* Autocomplete Input */}
+                <div className="relative mb-4">
+                  {formData.selectedCompany ? (
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 px-4 py-3 border border-green-300 bg-green-50 rounded-lg text-ncb-heading font-medium">
+                        {formData.selectedCompany}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFormData(prev => ({
+                            ...prev,
+                            selectedCompany: '',
+                            employerName: ''
+                          }));
+                          setCompanySearch('');
+                        }}
+                        className="px-4 py-3 text-sm font-medium text-ncb-blue hover:bg-ncb-blue-50 rounded-lg transition-colors"
+                      >
+                        Change
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <input
+                        type="text"
+                        value={companySearch}
+                        onChange={handleCompanySearch}
+                        onFocus={() => setShowCompanySuggestions(true)}
+                        placeholder="Type employer name..."
+                        className={`w-full px-4 py-3 border rounded-lg text-ncb-heading font-medium placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-ncb-blue focus:border-transparent transition-all ${
+                          errors.selectedCompany ? 'border-red-500' : 'border-gray-300 hover:border-ncb-blue'
+                        }`}
+                      />
+                      
+                      {/* Suggestions Dropdown */}
+                      {showCompanySuggestions && filteredCompanies.length > 0 && (
+                        <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-ncb-blue-100 rounded-lg shadow-lg z-10 max-h-64 overflow-y-auto">
+                          {filteredCompanies.map((company) => (
+                            <button
+                              key={company}
+                              type="button"
+                              onClick={() => handleSelectCompany(company)}
+                              className="w-full text-left px-4 py-3 hover:bg-ncb-blue-50 text-ncb-heading font-medium transition-colors border-b border-ncb-divider last:border-b-0"
+                            >
+                              {company}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* No results message */}
+                      {showCompanySuggestions && companySearch && filteredCompanies.length === 0 && (
+                        <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-ncb-blue-100 rounded-lg shadow-lg z-10 p-4">
+                          <p className="text-sm text-ncb-text">No matching employers found. Select "Other" from the list or type "other"</p>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+
+                {errors.selectedCompany && (
+                  <p className="text-sm text-red-500 mt-2">{errors.selectedCompany}</p>
+                )}
+
+                {/* Other Employer Name Field */}
+                {formData.selectedCompany === 'Other' && (
+                  <div className="mt-4">
+                    <label className="block text-sm font-semibold text-ncb-blue mb-3">
+                      Please specify employer name <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="employerName"
+                      value={formData.employerName}
+                      onChange={handleInputChange}
+                      placeholder="Enter your employer name"
+                      className={`w-full px-4 py-3 border rounded-lg text-ncb-heading font-medium placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-ncb-blue focus:border-transparent transition-all ${
+                        errors.employerName ? 'border-red-500' : 'border-gray-300 hover:border-ncb-blue'
+                      }`}
+                    />
+                    {errors.employerName && (
+                      <p className="text-sm text-red-500 mt-2">{errors.employerName}</p>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* ID Number Field */}
             <div className="mb-8">
@@ -240,3 +470,4 @@ export default function WelcomePage({ onNavigateToProducts }) {
     </div>
   );
 }
+
