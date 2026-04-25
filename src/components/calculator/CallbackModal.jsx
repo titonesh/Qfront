@@ -1,6 +1,178 @@
 import React, { useState } from 'react';
 import { X, Phone, Mail, User, Hash, MapPin } from 'lucide-react';
 
+const KENYAN_LOCATIONS = [
+  'Ahero',
+  'Assa (Kokane)',
+  'Athi River (part of Mavoko)',
+  'Awasi',
+  'Bamburi',
+  'Baringo West: Barwesa',
+  'Bondo',
+  'Bungoma',
+  'Busia',
+  'Chuka',
+  'Dadaab',
+  'Diani (Ukunda)',
+  'El Wak',
+  'Elburgon',
+  'Eldoret',
+  'Embu',
+  'Engineer',
+  'Garba Tula',
+  'Garissa',
+  'Gatundu',
+  'Gilgil',
+  'Githunguri',
+  'Githurai',
+  'Habaswein',
+  'Hola',
+  'Homa Bay',
+  'Isebania',
+  'Isinya',
+  'Isiolo',
+  'Iten',
+  'Juja',
+  'Kabarnet',
+  'Kajiado',
+  'Kakamega',
+  'Kakuma',
+  'Kangundo-Tala',
+  'Kapenguria',
+  'Kapsabet',
+  'Karatina',
+  'Karingari',
+  'Karuri',
+  'Katito',
+  'Kehancha',
+  'Kenol',
+  'Kericho',
+  'Keroka',
+  'Kerugoya-Kutus',
+  'Kiambu',
+  'Kikuyu',
+  'Kilgoris',
+  'Kilifi',
+  'Kimilili',
+  'Kiminini',
+  'Kipkelion',
+  'Kiserian',
+  'Kisii',
+  'Kisumu',
+  'Kitale',
+  'Kitengela',
+  'Kitui',
+  'Kolowa',
+  'Kutus (see Kerugoya-Kutus)',
+  'Kwale',
+  'Lafey',
+  'Lamu',
+  'Lari',
+  'Likoni',
+  'Limuru',
+  'Litein',
+  'Lodwar',
+  'Loosuk (Samburu West)',
+  'Luanda',
+  'Lunga Lunga',
+  'Machakos',
+  'Magarini North & South',
+  'Mai Mahiu',
+  'Mairo-Inya',
+  'Makindu',
+  'Makutano',
+  'Makuyu',
+  'Malaba',
+  'Malava',
+  'Malindi',
+  'Malkamari',
+  'Mambrui',
+  'Mandera',
+  'Maralal',
+  'Mariakani',
+  'Marsabit',
+  'Masalani',
+  'Maseno',
+  'Masogo (North East Kano)',
+  'Matuu',
+  'Maua',
+  'Mavoko (incl. Athi River, Syokimau)',
+  'Mazeras',
+  'Mbale',
+  'Mbita Point',
+  'Meru',
+  'Migori',
+  'Misikhu',
+  'Moi\'s Bridge',
+  'Molo',
+  'Mombasa',
+  'Moyale',
+  'Msambweni',
+  'Mtwapa',
+  'Mukothima',
+  'Mukutani',
+  'Mumias',
+  'Murang\'a',
+  'Mutuati',
+  'Mwatate',
+  'Mwingi',
+  'Naivasha',
+  'Nairobi',
+  'Nakuru',
+  'Nandi Hills',
+  'Nanyuki',
+  'Narok',
+  'Ndenderu',
+  'Ndhiwa',
+  'Ngong',
+  'Njoro',
+  'North East Kano: Masogo',
+  'Nuu Trading Centre',
+  'Nyahururu',
+  'Nyamira',
+  'Nyeri',
+  'Ogembo',
+  'Ol Kalou',
+  'Ongata Rongai',
+  'Oyugis',
+  'Rhamu',
+  'Rongo',
+  'Roysambu',
+  'Ruaka',
+  'Ruiru',
+  'Runyenjes',
+  'Saboti',
+  'Samburu West: Loosuk',
+  'Sare',
+  'Siaya',
+  'Sigowet: Chepkemel',
+  'Soin: Kipsitet',
+  'Sololo',
+  'Suneka',
+  'Syokimau (part of Mavoko)',
+  'Tala (see Kangundo-Tala)',
+  'Takaba',
+  'Taveta',
+  'Tharaka West: Kibung\'a',
+  'Thika',
+  'Tiaty Central: Chemolingot',
+  'Turbo',
+  'Turi',
+  'Ugunja',
+  'Ukunda (Diani)',
+  'Ukwala',
+  'Vihiga',
+  'Voi',
+  'Wajir',
+  'Wanguru',
+  'Wargadud',
+  'Watamu',
+  'Webuye',
+  'Wote',
+  'Wundanyi',
+  'Zombe'
+];
+
 const NCBA_BRANCHES = [
   "ABC",
   "BUNGOMA",
@@ -111,11 +283,14 @@ export default function CallbackModal({ onClose, onSubmit }) {
     email: '',
     referralNumber: '',
     preferredBranch: '',
+    location: '',
     message: '',
   });
 
   const [showBranchDropdown, setShowBranchDropdown] = useState(false);
   const [filteredBranches, setFilteredBranches] = useState([]);
+  const [showLocationDropdown, setShowLocationDropdown] = useState(false);
+  const [filteredLocations, setFilteredLocations] = useState([]);
 
   const handleBranchInput = (value) => {
     setFormData({ ...formData, preferredBranch: value });
@@ -138,10 +313,31 @@ export default function CallbackModal({ onClose, onSubmit }) {
     setFilteredBranches([]);
   };
 
+  const handleLocationInput = (value) => {
+    setFormData({ ...formData, location: value });
+    
+    if (value.trim()) {
+      const filtered = KENYAN_LOCATIONS.filter(location =>
+        location.toLowerCase().includes(value.toLowerCase())
+      );
+      setFilteredLocations(filtered);
+      setShowLocationDropdown(true);
+    } else {
+      setFilteredLocations([]);
+      setShowLocationDropdown(false);
+    }
+  };
+
+  const handleLocationSelect = (location) => {
+    setFormData({ ...formData, location: location });
+    setShowLocationDropdown(false);
+    setFilteredLocations([]);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     await onSubmit(formData);
-    setFormData({ fullName: '', phoneNumber: '', email: '', referralNumber: '', preferredBranch: '', message: '' });
+    setFormData({ fullName: '', phoneNumber: '', email: '', referralNumber: '', preferredBranch: '', location: '', message: '' });
     setTimeout(() => onClose(), 1500);
   };
 
@@ -237,6 +433,35 @@ export default function CallbackModal({ onClose, onSubmit }) {
                       className="w-full text-left px-3.5 py-2 hover:bg-ncb-blue-50 text-sm text-ncb-heading border-b border-ncb-divider last:border-b-0 transition-colors"
                     >
                       {branch}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-ncb-heading mb-0.5">Location (Optional)</label>
+            <div className="relative">
+              <MapPin size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-ncb-text" />
+              <input
+                type="text"
+                value={formData.location}
+                onChange={(e) => handleLocationInput(e.target.value)}
+                onFocus={() => formData.location && setShowLocationDropdown(true)}
+                className="w-full pl-9 pr-3.5 py-1.5 text-sm border border-ncb-divider rounded-lg focus:outline-none focus:border-ncb-blue"
+                placeholder="Search or select a location"
+              />
+              {showLocationDropdown && filteredLocations.length > 0 && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-ncb-divider rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
+                  {filteredLocations.map((location, index) => (
+                    <button
+                      key={index}
+                      type="button"
+                      onClick={() => handleLocationSelect(location)}
+                      className="w-full text-left px-3.5 py-2 hover:bg-ncb-blue-50 text-sm text-ncb-heading border-b border-ncb-divider last:border-b-0 transition-colors"
+                    >
+                      {location}
                     </button>
                   ))}
                 </div>

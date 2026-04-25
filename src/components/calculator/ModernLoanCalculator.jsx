@@ -32,16 +32,15 @@ function ModernLoanCalculator({ selectedProduct, incomeSource = 'employed', onCh
   
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [showCallbackModal, setShowCallbackModal] = useState(false);
-  const [calculated, setCalculated] = useState(false);
+  const [showCallbackModal, setShowCallbackModal] = useState(false);  const [showThankYouModal, setShowThankYouModal] = useState(false);  const [calculated, setCalculated] = useState(false);
   const [loanResultId, setLoanResultId] = useState(null);
   const [error, setError] = useState(null);
   const [successNotification, setSuccessNotification] = useState(null);
   const [finishNotification, setFinishNotification] = useState(null);
   const [locationSearch, setLocationSearch] = useState('');
   const [showLocationSuggestions, setShowLocationSuggestions] = useState(false);
-  const [hasCreditCard, setHasCreditCard] = useState('no');
-  const [hasOverdraft, setHasOverdraft] = useState('no');
+  const [hasCreditCard, setHasCreditCard] = useState('');
+  const [hasOverdraft, setHasOverdraft] = useState('');
 
   const filteredLocations = locationSearch.trim()
     ? KENYAN_TOWNS.filter(town =>
@@ -206,17 +205,20 @@ function ModernLoanCalculator({ selectedProduct, incomeSource = 'employed', onCh
         loanInputsJson: JSON.stringify(formData),
         loanResultJson: JSON.stringify(result),
       });
+      // Close the callback modal and show thank you modal
       setShowCallbackModal(false);
-      setSuccessNotification('Callback request submitted successfully! Our team will contact you shortly.');
-      setTimeout(() => {
-        setSuccessNotification(null);
-        navigate('/welcome');
-      }, 2000);
+      setShowThankYouModal(true);
     } catch (error) {
       console.error('Callback request failed:', error);
       setSuccessNotification('Callback request failed. Please try again.');
       setTimeout(() => setSuccessNotification(null), 15000);
     }
+  };
+
+  const handleThankYouClose = () => {
+    setShowThankYouModal(false);
+    sessionStorage.removeItem('customerInfo');
+    navigate('/welcome');
   };
 
   const handleFinish = () => {
@@ -665,6 +667,36 @@ function ModernLoanCalculator({ selectedProduct, incomeSource = 'employed', onCh
           onClose={() => setShowCallbackModal(false)}
           onSubmit={handleCallbackSubmit}
         />
+      )}
+
+      {/* Thank You Modal */}
+      {showThankYouModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-ncb-blue rounded-2xl max-w-md w-full p-8 text-center shadow-2xl">
+            {/* Checkmark Icon */}
+            <div className="mb-6 flex justify-center">
+              <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center">
+                <svg className="w-8 h-8 text-ncb-blue" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+              </div>
+            </div>
+
+            {/* Thank You Message */}
+            <h2 className="text-2xl font-bold text-white mb-4">Thank You!</h2>
+            <p className="text-white text-lg leading-relaxed mb-8">
+              Thank you for your request. One of our mortgage specialists will contact you within 48 working hours to assist you further. NCBA, Go For It.
+            </p>
+
+            {/* Close Button */}
+            <button
+              onClick={handleThankYouClose}
+              className="w-full py-3 bg-white text-ncb-blue font-bold text-lg rounded-lg hover:bg-gray-100 transition-all"
+            >
+              Close
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );
