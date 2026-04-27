@@ -41,6 +41,9 @@ function ModernLoanCalculator({ selectedProduct, incomeSource = 'employed', onCh
   const [showLocationSuggestions, setShowLocationSuggestions] = useState(false);
   const [hasCreditCard, setHasCreditCard] = useState('');
   const [hasOverdraft, setHasOverdraft] = useState('');
+  const [selectedLoanAmount, setSelectedLoanAmount] = useState('');
+  const [selectedFinancingPercentage, setSelectedFinancingPercentage] = useState('100');
+  const [loanAmountError, setLoanAmountError] = useState('');
 
   const filteredLocations = locationSearch.trim()
     ? KENYAN_TOWNS.filter(town =>
@@ -128,6 +131,24 @@ function ModernLoanCalculator({ selectedProduct, incomeSource = 'employed', onCh
     }
   };
 
+  const handleLoanAmountChange = (e) => {
+    const value = e.target.value;
+    setSelectedLoanAmount(value);
+    
+    if (value && result) {
+      const enteredAmount = parseFloat(parseNumberInput(value));
+      const maxAmount = result.maximumLoanAmount;
+      
+      if (enteredAmount > maxAmount) {
+        setLoanAmountError('Amount cannot exceed your eligible maximum.');
+      } else {
+        setLoanAmountError('');
+      }
+    } else {
+      setLoanAmountError('');
+    }
+  };
+
   const handleCalculate = async () => {
     setError(null);
     
@@ -178,6 +199,9 @@ function ModernLoanCalculator({ selectedProduct, incomeSource = 'employed', onCh
       setResult(response);
       setLoanResultId(response.loanResultId);
       setCalculated(true);
+      setSelectedLoanAmount('');
+      setSelectedFinancingPercentage('100');
+      setLoanAmountError('');
     } catch (error) {
       console.error('Calculation failed:', error);
       if (error.response?.status === 502) {
@@ -201,8 +225,13 @@ function ModernLoanCalculator({ selectedProduct, incomeSource = 'employed', onCh
         email: callbackData.email,
         referralNumber: callbackData.referralNumber,
         preferredBranch: callbackData.preferredBranch,
+        location: callbackData.location,
         message: callbackData.message,
-        loanInputsJson: JSON.stringify(formData),
+        loanInputsJson: JSON.stringify({
+          ...formData,
+          selectedLoanAmount: selectedLoanAmount,
+          selectedFinancingPercentage: selectedFinancingPercentage
+        }),
         loanResultJson: JSON.stringify(result),
       });
       // Close the callback modal and show thank you modal
@@ -601,6 +630,44 @@ function ModernLoanCalculator({ selectedProduct, incomeSource = 'employed', onCh
                 <div className="bg-gradient-to-br from-ncb-blue-50 to-blue-100 rounded-xl p-4 text-center border border-ncb-blue-200">
                   <p className="text-xs text-ncb-text font-semibold mb-1.5">MAXIMUM LOAN AMOUNT</p>
                   <p className="text-3xl font-bold text-ncb-blue">{formatCurrency(result.maximumLoanAmount)}</p>
+                </div>
+
+                {/* Desired Loan Amount Input */}
+                <div>
+                  <label className="block text-xs font-semibold text-ncb-heading mb-0.5">
+                    How much loan do you want? (Max: {formatCurrency(result.maximumLoanAmount)})
+                  </label>
+                  <input
+                    type="text"
+                    value={selectedLoanAmount}
+                    onChange={handleLoanAmountChange}
+                    placeholder="Enter desired amount"
+                    className={`w-full px-2.5 py-1 text-xs border rounded-lg focus:outline-none focus:ring-1 ${
+                      loanAmountError 
+                        ? 'border-red-500 focus:ring-red-500' 
+                        : 'border-ncb-divider focus:ring-ncb-blue'
+                    }`}
+                  />
+                  {loanAmountError && (
+                    <p className="text-xs text-red-600 mt-1 font-semibold">{loanAmountError}</p>
+                  )}
+                </div>
+
+                {/* Financing Percentage Dropdown */}
+                <div>
+                  <label className="block text-xs font-semibold text-ncb-heading mb-0.5">Select Financing Percentage</label>
+                  <select
+                    value={selectedFinancingPercentage}
+                    onChange={(e) => setSelectedFinancingPercentage(e.target.value)}
+                    className="w-full px-2.5 py-1 text-xs border border-ncb-divider rounded-lg focus:outline-none focus:ring-1 focus:ring-ncb-blue"
+                  >
+                    <option value="50">50%</option>
+                    <option value="60">60%</option>
+                    <option value="70">70%</option>
+                    <option value="80">80%</option>
+                    <option value="90">90%</option>
+                    <option value="100">100%</option>
+                  </select>
                 </div>
                 
                 <div className="grid grid-cols-2 gap-3">
