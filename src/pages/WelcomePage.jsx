@@ -81,7 +81,7 @@ export default function WelcomePage({ onNavigateToProducts }) {
     const newErrors = {};
 
     if (!formData.hasNCBAccount) {
-      newErrors.hasNCBAccount = 'Please indicate if you have an NCB account';
+      newErrors.hasNCBAccount = 'Please indicate if you have an NCBA account';
     }
 
     if (!formData.incomeSource) {
@@ -153,7 +153,7 @@ export default function WelcomePage({ onNavigateToProducts }) {
                 alt="NCBA Mortgage Logo"
                 className="h-8 w-auto object-contain"
               />
-              <span className="font-semibold text-ncb-blue">NCBA Mortgage</span>
+              <span className="font-semibold text-ncb-blue"></span>
             </div>
             <div className="w-16"></div>
           </div>
@@ -178,7 +178,7 @@ export default function WelcomePage({ onNavigateToProducts }) {
             {/* NCB Account Section */}
             <div className="mb-8">
               <label className="block text-sm font-semibold text-ncb-blue mb-3">
-                Do you have an NCB account? <span className="text-red-500">*</span>
+                Do you have an NCBA account? <span className="text-red-500">*</span>
               </label>
               <div className="flex gap-4">
                 <label className="flex items-center gap-2 cursor-pointer">

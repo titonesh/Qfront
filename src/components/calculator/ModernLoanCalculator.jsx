@@ -487,7 +487,7 @@ function ModernLoanCalculator({ selectedProduct, incomeSource = 'employed', onCh
 
               {/* Loan Obligations */}
               <div>
-                <label className="block text-xs font-semibold text-ncb-heading mb-0.5">Existing Loan Obligations (Monthly)</label>
+                <label className="block text-xs font-semibold text-ncb-heading mb-0.5">Existing Loan Obligations (Installments)</label>
                 <input
                   type="text"
                   name="existingLoanObligations"
